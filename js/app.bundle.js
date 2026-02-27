@@ -683,8 +683,11 @@
     if (currentUserBadge) {
       currentUserBadge.textContent = currentUser.username + " (" + currentUser.role + ")";
     }
-    if (manageUsersBtn) manageUsersBtn.hidden = !isManagerOrSupervisor();
-    if (massDeleteLink) massDeleteLink.hidden = isAgentRole();
+    const canManage = isManagerOrSupervisor();
+    if (manageUsersBtn) manageUsersBtn.hidden = !canManage;
+    if (massDeleteLink) massDeleteLink.hidden = !canManage;
+    if (manageDepartmentsBtn) manageDepartmentsBtn.hidden = !canManage;
+    if (importExportBtn) importExportBtn.hidden = !canManage;
   }
 
   async function renderUserAdminTable() {
