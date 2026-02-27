@@ -156,15 +156,19 @@
     return invokeError.message ? String(invokeError.message) : (fallbackMessage || "Request failed.");
   }
 
-  async function createAgentAccount(_currentSession, _username, _password) {
+  async function createAgentAccount(_currentSession, _username, _password, _role) {
     const currentSession = _currentSession || null;
     if (!currentSession || !canManageUsers(currentSession.role)) {
       return { ok: false, message: "Permission denied." };
     }
     const username = String(_username || "").trim();
     const password = String(_password || "");
+    const role = String(_role || "AGENT").trim().toUpperCase();
     if (!username || !password) {
-      return { ok: false, message: "Username (or email) and password are required." };
+      return { ok: false, message: "Username (or email), password, and role are required." };
+    }
+    if (!["AGENT", "SUPERVISOR", "MANAGER"].includes(role)) {
+      return { ok: false, message: "Role must be AGENT, SUPERVISOR, or MANAGER." };
     }
 
     const client = getSupabaseClient();
@@ -173,9 +177,10 @@
     const fnName = String(cfg.adminFunctionName || DEFAULT_EDGE_FUNCTION_NAME).trim() || DEFAULT_EDGE_FUNCTION_NAME;
     const invokeResult = await client.functions.invoke(fnName, {
       body: {
-        action: "create_agent",
+        action: "create_user",
         username: username,
-        password: password
+        password: password,
+        role: role
       }
     });
     if (invokeResult.error) {
@@ -187,7 +192,8 @@
 
     return {
       ok: true,
-      loginEmail: body.loginEmail ? body.loginEmail : ""
+      loginEmail: body.loginEmail ? body.loginEmail : "",
+      role: body.role ? String(body.role) : role
     };
   }
 

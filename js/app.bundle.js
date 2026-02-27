@@ -406,6 +406,7 @@
   const closeUserAdminBtn = document.getElementById("closeUserAdminBtn");
   const newAgentUsername = document.getElementById("newAgentUsername");
   const newAgentPassword = document.getElementById("newAgentPassword");
+  const newUserRole = document.getElementById("newUserRole");
   const createAgentBtn = document.getElementById("createAgentBtn");
   const resetTargetLabel = document.getElementById("resetTargetLabel");
   const resetTargetUserId = document.getElementById("resetTargetUserId");
@@ -714,6 +715,7 @@
     renderUserAdminTable();
     if (newAgentUsername) newAgentUsername.value = "";
     if (newAgentPassword) newAgentPassword.value = "";
+    if (newUserRole) newUserRole.value = "AGENT";
     if (resetTargetLabel) resetTargetLabel.value = "";
     if (resetTargetUserId) resetTargetUserId.value = "";
     if (resetAccountPassword) resetAccountPassword.value = "";
@@ -1892,9 +1894,10 @@
       if (!auth || typeof auth.createAgentAccount !== "function") return;
       const username = newAgentUsername ? newAgentUsername.value : "";
       const password = newAgentPassword ? newAgentPassword.value : "";
+      const role = newUserRole ? String(newUserRole.value || "AGENT").trim().toUpperCase() : "AGENT";
       let result;
       try {
-        result = await auth.createAgentAccount(currentUser, username, password);
+        result = await auth.createAgentAccount(currentUser, username, password, role);
       } catch (_error) {
         showAppNotice("User Creation", "Secure account creation is unavailable in this browser.");
         return;
@@ -1906,8 +1909,9 @@
       await renderUserAdminTable();
       if (newAgentUsername) newAgentUsername.value = "";
       if (newAgentPassword) newAgentPassword.value = "";
+      if (newUserRole) newUserRole.value = "AGENT";
       const loginEmail = result.loginEmail ? (" Login email: " + result.loginEmail) : "";
-      showAppNotice("User Created", "Agent account created successfully." + loginEmail);
+      showAppNotice("User Created", "User account created as " + role + "." + loginEmail);
     });
   }
   if (userAdminRows) {
@@ -2380,6 +2384,20 @@
     currentPageSize = Number.isFinite(initialSize) && initialSize > 0 ? initialSize : 10;
   }
   renderCurrentUserState();
+  if (searchInput && String(searchInput.value || "").trim()) {
+    // Prevent browser autofill from persisting user email into asset search.
+    searchInput.value = "";
+  }
+  if (searchInput) {
+    window.setTimeout(function () {
+      const value = String(searchInput.value || "").trim();
+      if (value.includes("@")) {
+        searchInput.value = "";
+        currentPage = 1;
+        renderTable();
+      }
+    }, 80);
+  }
   rebuildAssetIndexes();
   renderTable();
   if (supabaseClient) {

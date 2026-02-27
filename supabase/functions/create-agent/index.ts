@@ -39,6 +39,10 @@ function normalizeAction(value: unknown) {
   return String(value || "create_agent").trim().toLowerCase();
 }
 
+function normalizeRole(value: unknown) {
+  return String(value || "AGENT").trim().toUpperCase();
+}
+
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
   if (req.method !== "POST") return json(405, { ok: false, message: "Method not allowed." });
@@ -93,9 +97,13 @@ Deno.serve(async (req) => {
     return json(403, { ok: false, message: "Only Manager/Supervisor can create agents." });
   }
 
-  if (action === "create_agent") {
+  if (action === "create_agent" || action === "create_user") {
     const username = normalizeUsername(body.username);
+    const role = normalizeRole(body.role);
     if (!username) return json(400, { ok: false, message: "Username (or email) is required." });
+    if (!["AGENT", "SUPERVISOR", "MANAGER"].includes(role)) {
+      return json(400, { ok: false, message: "Role must be AGENT, SUPERVISOR, or MANAGER." });
+    }
 
     const loginEmail = deriveEmailFromUsername(username);
     const createResult = await adminClient.auth.admin.createUser({
@@ -116,7 +124,7 @@ Deno.serve(async (req) => {
       .upsert({
         id: createResult.data.user.id,
         username: username,
-        role: "AGENT"
+        role: role
       }, { onConflict: "id" });
 
     if (profileUpsert.error) {
@@ -125,8 +133,9 @@ Deno.serve(async (req) => {
 
     return json(200, {
       ok: true,
-      message: "Agent account created.",
-      loginEmail: loginEmail
+      message: "User account created.",
+      loginEmail: loginEmail,
+      role: role
     });
   }
 

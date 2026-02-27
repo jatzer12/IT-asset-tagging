@@ -173,7 +173,7 @@
         <div class="search-row">
           <div>
             <label for="searchInput">Search (Asset ID, Asset Name, Serial #, Assigned User)</label>
-            <input id="searchInput" type="text" placeholder="IT-FA-09037, Staff Laptop 01, SN-8891, or Jared Mariano" />
+            <input id="searchInput" type="text" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" placeholder="IT-FA-09037, Staff Laptop 01, SN-8891, or Jared Mariano" />
           </div>
           <button type="button" class="ghost" id="clearSearchBtn">Clear Search</button>
         </div>
@@ -437,7 +437,7 @@
       <div class="grid">
         <div class="row-2">
           <div>
-            <label for="newAgentUsername">Agent Username or Email</label>
+            <label for="newAgentUsername">Username or Email</label>
             <input id="newAgentUsername" type="text" placeholder="agent.jdoe or agent@pcc.local" />
           </div>
           <div>
@@ -445,8 +445,19 @@
             <input id="newAgentPassword" type="password" placeholder="Create a strong password" />
           </div>
         </div>
+        <div class="row-2">
+          <div>
+            <label for="newUserRole">Role</label>
+            <select id="newUserRole">
+              <option value="AGENT" selected>Agent</option>
+              <option value="SUPERVISOR">Supervisor</option>
+              <option value="MANAGER">Manager</option>
+            </select>
+          </div>
+          <div></div>
+        </div>
         <div class="btn-row">
-          <button type="button" class="primary" id="createAgentBtn">Create Agent Account</button>
+          <button type="button" class="primary" id="createAgentBtn">Create User Account</button>
         </div>
         <div class="row-2">
           <div>
