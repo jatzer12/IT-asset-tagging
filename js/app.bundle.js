@@ -1280,7 +1280,7 @@
                 await refreshAssetsFromSupabase();
                 const refreshedIndex = getAssetIndexByTag(tag);
                 if (refreshedIndex >= 0) openAssetDetails(assets[refreshedIndex]);
-                showAppNotice("Request Submitted", "Delete request submitted for approval.");
+                showAppNotice("Request Submitted", "Delete request submitted. Managers/Supervisors will see it as 'Delete Requested' in inventory and can approve it from Asset Details.");
               });
             return;
           }
@@ -1328,6 +1328,11 @@
     if (status === PRIMARY_STATUS.IN_USE) return '<span class="pill use">In-Use</span>';
     if (status === PRIMARY_STATUS.DEFERRED) return '<span class="pill def">Deferred</span>';
     return '<span class="pill sur">Disposed</span>';
+  }
+
+  function badgeForDeleteRequest(asset) {
+    if (!asset || !asset.pendingDelete) return "";
+    return '<div style="margin-top:6px;"><span class="pill def">Delete Requested</span></div>';
   }
 
   function renderStats(sourceAssets) {
@@ -1714,7 +1719,7 @@
         <td data-col="assignedTo">${asset.assignedTo || "-"}</td>
         <td data-col="location">${asset.location || "-"}<br><span class="helper">${asset.roomNumber || "-"}</span></td>
         <td data-col="department">${asset.department || "-"}</td>
-        <td data-col="primary">${badgeForPrimary(asset.primaryStatus)}</td>
+      <td data-col="primary">${badgeForPrimary(asset.primaryStatus)}${badgeForDeleteRequest(asset)}</td>
         <td data-col="notes">${asset.notes || "-"}</td>
         <td data-col="action">
           <button type="button" class="ghost" data-view="${asset.assetTag}">View</button>
@@ -1743,9 +1748,13 @@
       || filterLifecycleYear.value.trim()
     );
 
-    searchMeta.textContent = hasActiveFilters
-      ? "Showing " + visibleAssets.length + " of " + assets.length + " assets. Page " + currentPage + " of " + totalPages + "."
-      : "Showing all assets.";
+  searchMeta.textContent = hasActiveFilters
+    ? "Showing " + visibleAssets.length + " of " + assets.length + " assets. Page " + currentPage + " of " + totalPages + "."
+    : "Showing all assets.";
+  const pendingRequestsCount = assets.filter(function (item) { return !!item.pendingDelete; }).length;
+  if (pendingRequestsCount > 0) {
+    searchMeta.textContent += " Pending delete requests: " + pendingRequestsCount + ".";
+  }
 
     renderStats(visibleAssets);
     renderPagination(visibleAssets.length);
