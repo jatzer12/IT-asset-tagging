@@ -917,7 +917,6 @@
           timestamp: String(item.created_at || ""),
           username: usernameByUserId.get(userId)
             || (userId && currentUserId && userId === String(currentUserId) ? String(currentUser.username || "").trim() : "")
-            || userId
             || "Unknown User"
         };
       });
@@ -1105,6 +1104,10 @@
 
     const text = String(assetCommentInput.value || "").trim();
     if (!text) return;
+    const authorLabel = String(currentUser && currentUser.username ? currentUser.username : "").trim();
+    const storedCommentText = authorLabel
+      ? (text + " (posted by " + authorLabel + ")")
+      : text;
 
     const index = getAssetIndexByTag(tag);
     if (index < 0) return;
@@ -1113,7 +1116,7 @@
     if (supabaseClient && current.id) {
       const insertResult = await supabaseClient.from("asset_comments").insert({
         asset_id: Number(current.id),
-        comment_text: text,
+        comment_text: storedCommentText,
         created_by: currentUserId
       });
       if (insertResult.error) {
