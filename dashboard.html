@@ -1,0 +1,129 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>IT Asset Dashboard</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&family=IBM+Plex+Mono:wght@400;600&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="./css/styles.css" />
+</head>
+<body>
+  <div class="shell">
+    <section class="header">
+      <div class="brand-wrap">
+        <div class="brand-mark">
+          <img
+            src="./assets/pcc-logo.jpg"
+            alt="Polynesian Cultural Center logo"
+            onerror="this.style.display='none'; this.nextElementSibling.style.display='block';"
+          />
+          <div class="brand-fallback">PCC</div>
+        </div>
+        <div class="brand-copy">
+          <h1>IT Asset Reporting Dashboard</h1>
+          <p class="sub">Replacement planning and lifecycle reporting view.</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="card">
+      <div class="inventory-head">
+        <h2>Dashboard Filters</h2>
+        <div class="inventory-actions">
+          <a class="ghost dashboard-link" href="./index.html">Back to Registry</a>
+          <button type="button" class="primary" id="refreshDashboardBtn">Refresh</button>
+        </div>
+      </div>
+
+      <div class="filters-row">
+        <div>
+          <label for="dashDepartment">Department</label>
+          <input id="dashDepartment" type="text" list="dashDepartmentOptions" placeholder="All departments" />
+          <datalist id="dashDepartmentOptions"></datalist>
+        </div>
+        <div>
+          <label for="dashStatus">Primary Status</label>
+          <select id="dashStatus">
+            <option value="">All</option>
+            <option value="INVENTORY">Inventory</option>
+            <option value="IN_USE">In-Use</option>
+            <option value="DEFERRED">Deferred</option>
+            <option value="SURPLUSED">Disposed</option>
+          </select>
+        </div>
+        <div>
+          <label for="dashYear">Lifecycle Year</label>
+          <input id="dashYear" type="number" min="2000" max="2100" step="1" placeholder="All years" />
+        </div>
+        <div class="inline-action">
+          <button type="button" class="ghost" id="clearDashFiltersBtn">Clear Filters</button>
+        </div>
+      </div>
+
+      <div class="search-meta" id="dashMeta">Showing all assets in dashboard.</div>
+
+      <section class="reporting-dashboard">
+        <h3>Replacement Insights</h3>
+        <div class="report-grid">
+          <div class="report-card">
+            <small>Computers Past Replacement</small>
+            <strong id="repComputersPast">0</strong>
+          </div>
+          <div class="report-card">
+            <small>Assets Past Replacement</small>
+            <strong id="repAssetsPast">0</strong>
+          </div>
+          <div class="report-card">
+            <small>Due This Year</small>
+            <strong id="repDueThisYear">0</strong>
+          </div>
+          <div class="report-card">
+            <small>Due Next Year</small>
+            <strong id="repDueNextYear">0</strong>
+          </div>
+        </div>
+
+        <div class="report-split">
+          <div class="report-block">
+            <h4>Replacement By Department</h4>
+            <div class="table-wrap">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Department</th>
+                    <th>Past</th>
+                    <th>Due This Year</th>
+                    <th>Due Next Year</th>
+                  </tr>
+                </thead>
+                <tbody id="repDeptRows"></tbody>
+              </table>
+            </div>
+          </div>
+          <div class="report-block">
+            <h4>Lifecycle Year Buckets</h4>
+            <div class="table-wrap">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Bucket</th>
+                    <th>Count</th>
+                  </tr>
+                </thead>
+                <tbody id="repBucketRows"></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </section>
+    </section>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="./js/supabase.config.js"></script>
+  <script src="./js/auth.shared.js"></script>
+  <script src="./js/dashboard.bundle.js"></script>
+</body>
+</html>

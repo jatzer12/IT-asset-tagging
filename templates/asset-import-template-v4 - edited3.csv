@@ -1,0 +1,31 @@
+Asset Name,Asset Tag,Serial Number,Device Type,Model,Assigned User,Location,Room Number,Department,Purchase Date,Lifecycle Year,Asset Value,Primary Status,Disposition Status,Reason/Notes
+ADM1-AUDIT2-FN,7645,GJ883Y2,Desktop,Optiplex 7060,"Rongthong, Napasorn",Central Kitchen,Finance Office,Finance,6/25/2019,2023,$500.00 ,SURPLUSED,N/A,
+ADM1-FRVIL-FN,8112,96C69M2,Desktop,Optiplex 7050,"Nihipali, Jacob",Central Kitchen,Finance Office,Finance,12/30/2017,2021,$180.00 ,SURPLUSED,N/A,
+PCC-CASHROOM-FN,8202,6H51WP2,Desktop,Optiplex 7050,Jigs Dacuno,Admin,Cashroom,Finance,8/2/2018,2022,$700.00 ,SURPLUSED,N/A,Do Not Replace
+OAB-CASHRTL-FN,8217,5R2P9T2,Desktop,Optiplex 7050,,Admin,Cashroom,Finance,1/16/2019,2023,$180.00 ,SURPLUSED,N/A,Formatted(In the office)
+ADM1-INTRN-FN,8237,C9W81S2,Desktop,Optiplex 7060,,Central Kitchen,Finance Office,Finance,6/25/2019,2023,$500.00 ,SURPLUSED,N/A,Formatted(In the office)
+DESKTOP-SI4KV1K,8239,C9WD1S2,Desktop,Optiplex 7060,,Central Kitchen,Finance Office,Finance,6/25/2019,2023,$700.00 ,SURPLUSED,N/A,
+ADM1-FINSP-FN,8285,GJ473Y2,Desktop,Optiplex 7060,"Cabrera, Jessa",Central Kitchen,Finance Office,Finance,6/25/2019,2023,$500.00 ,SURPLUSED,N/A,
+OAB-STUDENT-MIS,8291,GJ6PPX2,Desktop,Optiplex 7060,"Moors, Renon",Central Kitchen,Finance Office,Finance,6/25/2019,2023,$500.00 ,SURPLUSED,N/A,
+PCC-CSHRM2-ADM,8298,7YX85K3,Desktop,Optiplex 7090,Cashroom Student,Admin,Cashroom,Finance,1/1/2021,2025,$500.00 ,IN_USE,N/A,
+PCC-GW-AUD2,8331,JTQX2Q3,Desktop,Optiplex 7000,,Gateway Upstairs,Audit Office (Upstairs),Finance,6/5/2021,2025,$640.00 ,SURPLUSED,N/A,We have this in MIS as a spare.
+PCC-FWF-FIN1,8355,9RQX2Q3,Desktop,Optiplex 7000,"Ou, Zhanwei",Banyan,Finance Office,Finance,6/5/2021,2025,$640.00 ,IN_USE,N/A,Transfered Call Center Aunty Diana
+PCC-GW-SDR1,8357,GRQX2Q3,Desktop,Optiplex 7000,,Gateway,SDR Office,Finance,6/5/2021,2025,$640.00 ,IN_USE,N/A,
+PCC-FWF-FIN2,8358,C9JX2Q3,Desktop,Optiplex 7000,Finance Student,Banyan,Finance Office,Finance,6/5/2021,2025,$640.00 ,IN_USE,N/A,
+ADM2-SUPPRT2-HR,8374,GJ8VPX2,Desktop,Optiplex 7060,"Radin, Jerico",Admin,MIS Office,Finance,6/25/2019,2023,$500.00 ,SURPLUSED,N/A,
+OAB-CASHCON-FN,8377,GJ873Y2,Desktop,Optiplex 7060,,Admin,Cashroom,Finance,6/25/2019,2023,$500.00 ,SURPLUSED,N/A,Formatted(In the office)
+ADM1-FRHEFF-FN,8389,GJ693Y2,Desktop,Optiplex 7060,"Benson, Wayne",Banyan,Finance Office,Finance,6/25/2019,2023,$500.00 ,IN_USE,N/A,
+ADM1-KALAMAT-FN,8431,1MMWSM2,Desktop,Optiplex 7050,"Kalama, Tauariki",Central Kitchen,Finance Office,Finance,12/30/2017,2021,$180.00 ,SURPLUSED,N/A,
+PCC-FWF-FIN7,9133,4CK03Q3,Desktop,Optiplex 7000,Finance Student,Banyan,Finance Office,Finance,6/15/2022,2026,$640.00 ,IN_USE,N/A,
+PCC-FWF-FIN8,9501,687K3Q3,Desktop,Optiplex 7000,"Moors, Renon",Banyan,Finance Office,Finance,6/14/2022,2026,$640.00 ,IN_USE,N/A,
+PCC-FWF-FIN6,9507,CTQX2Q3,Desktop,Optiplex 7000,,Banyan,Finance Office,Finance,6/14/2022,2026,$640.00 ,IN_USE,N/A,
+PCC-FWF-FIN9,9544,FZY2L44,Desktop,Optiplex 7010,,Banyan,Finance Office,Finance,5/23/2024,2028,$700.00 ,IN_USE,N/A,
+PCC-FRHEFF-FN,9584,6GB3G24,Desktop,OptiPlex Micro 7010,,Banyan,Finance Office,Finance,6/28/2024,2028,$650.00 ,IN_USE,N/A,
+PCC-FRVIL-FN,9585,9FB3G24,Desktop,OptiPlex Micro 7010,,Banyan,Finance Office,Finance,5/23/2024,2028,$700.00 ,IN_USE,N/A,
+PCC-FINSTD-FN,9586,DDB3G24,Desktop,OptiPlex Micro 7010,"Lameg, Naomi",Banyan,Finance Office,Finance,6/28/2024,2028,$650.00 ,IN_USE,N/A,
+PCC-AUDIT2-FN,9587,GFB3G24,Desktop,OptiPlex Micro 7010,Finance Student,Banyan,Finance Office,Finance,5/23/2024,2028,$650.00 ,IN_USE,N/A,
+PCC-CASHRTL-FN,9591,FFB3G24,Desktop,Optiplex 7000,Cyndylee Sommer,Admin,Cashroom,Finance,6/15/2022,2026,$700.00 ,IN_USE,N/A,
+PCC-CASHRTL-FN,9591,FFB3G24,Desktop,OptiPlex Micro 7010,,Banyan,Finance Office,Finance,5/23/2024,2028,$700.00 ,IN_USE,N/A,
+PCC-ADMFINS-FN,9592,CDB3G24,Desktop,OptiPlex Micro 7010,Finance Student,Banyan,Finance Office,Finance,6/28/2024,2028,$650.00 ,IN_USE,N/A,
+PCC-CASHCON-FN,9593,7FB3G24,Desktop,OptiPlex Micro 7010,"Liva, Matilda",Cashroom,Cashroom,Finance,5/23/2024,2028,$700.00 ,IN_USE,N/A,
+PCC-KALAMAT-FN,9608,4HF3G24,Desktop,OptiPlex Micro 7010,"Kalama, Tauariki",Banyan,Finance Office,Finance,6/28/2024,2028,$650.00 ,IN_USE,N/A,

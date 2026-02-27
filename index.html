@@ -1,0 +1,508 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>IT Asset Tagging</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&family=IBM+Plex+Mono:wght@400;600&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="./css/styles.css" />
+</head>
+<body>
+  <div class="shell">
+    <section class="header">
+      <div class="brand-wrap">
+        <div class="brand-mark">
+          <img
+            src="./assets/pcc-logo.jpg"
+            alt="Polynesian Cultural Center logo"
+            onerror="this.style.display='none'; this.nextElementSibling.style.display='block';"
+          />
+          <div class="brand-fallback">PCC</div>
+        </div>
+        <div class="brand-copy">
+          <h1>IT Asset Tagging</h1>
+          <p class="sub">
+            Track every device with clear lifecycle states: <strong>Inventory</strong>, <strong>In-Use</strong>, <strong>Deferred</strong>, and <strong>Disposed</strong>.
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <section class="layout">
+      <form class="card asset-form-panel" id="assetForm" aria-hidden="true" hidden>
+        <div class="panel-head">
+          <h2>Asset Record</h2>
+          <button type="button" class="ghost" id="closeAssetPanelBtn">Close</button>
+        </div>
+
+        <div class="grid">
+          <div>
+            <label for="assetName">Asset Name</label>
+            <input id="assetName" name="assetName" required placeholder="Staff Laptop 01" />
+          </div>
+
+          <div class="row-2">
+            <div>
+            <label for="assetTag">Asset Tag ID</label>
+            <input id="assetTag" name="assetTag" required placeholder="Enter any unique asset tag" />
+            <div class="helper">Use your own format (for example: IT-FA-1234, LAPTOP-JM-01, SN-8891).</div>
+          </div>
+            <div>
+              <label for="serialNumber">Serial #</label>
+              <input id="serialNumber" name="serialNumber" placeholder="SN-8891" />
+            </div>
+          </div>
+
+          <div class="row-2">
+            <div>
+              <label for="deviceType">Device Type</label>
+              <input id="deviceType" name="deviceType" required placeholder="Laptop" />
+            </div>
+            <div>
+              <label for="model">Model</label>
+              <input id="model" name="model" placeholder="Latitude 5440" />
+            </div>
+          </div>
+
+          <div class="row-3">
+            <div>
+              <label for="assignedTo">Assigned User</label>
+              <input id="assignedTo" name="assignedTo" placeholder="Name or team" />
+            </div>
+            <div>
+              <label for="location">Location</label>
+              <input id="location" name="location" placeholder="Main Office" />
+            </div>
+            <div>
+              <label for="roomNumber">Room #</label>
+              <input id="roomNumber" name="roomNumber" placeholder="A-201" />
+            </div>
+          </div>
+
+          <div>
+            <label for="department">Department</label>
+            <div class="single-combo" id="departmentCombo">
+              <input id="department" name="department" autocomplete="off" placeholder="Type department or choose from dropdown" />
+              <button type="button" class="ghost combo-btn" id="departmentComboBtn" aria-label="Toggle departments">▾</button>
+              <div class="combo-list" id="departmentComboList" hidden></div>
+            </div>
+          </div>
+
+          <div class="row-2">
+            <div>
+              <label for="purchaseDate">Purchase Date</label>
+              <input id="purchaseDate" name="purchaseDate" type="date" />
+            </div>
+            <div>
+              <label for="lifecycleYear">Lifecycle Year</label>
+              <input id="lifecycleYear" name="lifecycleYear" type="number" min="2000" max="2100" step="1" placeholder="2028" />
+            </div>
+          </div>
+          <div>
+            <label for="assetValue">Asset Value (USD)</label>
+            <input id="assetValue" name="assetValue" class="value-input" type="number" min="0" step="0.01" placeholder="0.00" />
+          </div>
+
+          <div>
+            <label for="primaryStatus">Status</label>
+            <select id="primaryStatus" name="primaryStatus" required>
+              <option value="INVENTORY">Inventory</option>
+              <option value="IN_USE">In-Use</option>
+              <option value="DEFERRED">Deferred</option>
+              <option value="SURPLUSED">Disposed</option>
+            </select>
+          </div>
+
+          <div>
+            <label for="notes">Reason/Notes</label>
+            <textarea id="notes" name="notes" placeholder="Optional notes"></textarea>
+          </div>
+        </div>
+
+        <div class="btn-row">
+          <button type="submit" class="primary" id="submitBtn">Save Asset</button>
+          <button type="button" class="ghost" id="resetBtn">Reset</button>
+          <button type="button" class="danger" id="clearBtn">Clear All</button>
+        </div>
+      </form>
+
+      <section class="card">
+        <div class="inventory-head">
+          <div class="inventory-title-wrap">
+            <h2>Asset Inventory</h2>
+            <div class="user-badge" id="currentUserBadge"></div>
+          </div>
+          <div class="inventory-actions">
+            <div class="view-mode">
+              <label for="viewModeSelect">View</label>
+              <select id="viewModeSelect">
+                <option value="standard">Standard</option>
+                <option value="minimal">Minimal</option>
+                <option value="full">Full</option>
+              </select>
+            </div>
+            <div class="view-mode">
+              <label for="pageSizeSelect">Rows</label>
+              <select id="pageSizeSelect">
+                <option value="5">5</option>
+                <option value="10" selected>10</option>
+                <option value="20">20</option>
+                <option value="30">30</option>
+                <option value="40">40</option>
+                <option value="50">50</option>
+                <option value="100">100</option>
+              </select>
+            </div>
+            <button type="button" class="primary" id="openAssetPanelBtn">New Asset</button>
+            <details class="actions-menu">
+              <summary class="ghost">Tools</summary>
+              <div class="actions-menu-list">
+                <button type="button" class="ghost dashboard-btn" id="openDashboardBtn">Dashboard</button>
+                <button type="button" class="ghost" id="importExportBtn">Import / Export</button>
+                <button type="button" class="ghost" id="manageDepartmentsBtn">Departments</button>
+                <a class="ghost btn-link" id="massDeleteLink" href="./mass-delete.html">Mass Delete</a>
+                <button type="button" class="ghost" id="manageUsersBtn" hidden>Manage Users</button>
+                <button type="button" class="ghost" id="logoutBtn">Logout</button>
+                <input id="csvInput" type="file" accept=".csv,text/csv" hidden />
+              </div>
+            </details>
+          </div>
+        </div>
+        <div class="search-row">
+          <div>
+            <label for="searchInput">Search (Asset ID, Asset Name, Serial #, Assigned User)</label>
+            <input id="searchInput" type="text" placeholder="IT-FA-09037, Staff Laptop 01, SN-8891, or Jared Mariano" />
+          </div>
+          <button type="button" class="ghost" id="clearSearchBtn">Clear Search</button>
+        </div>
+        <details class="filters-panel">
+          <summary>Advanced Filters</summary>
+          <div class="filters-row">
+            <div>
+              <label for="filterPrimaryStatus">Status</label>
+              <select id="filterPrimaryStatus">
+                <option value="">All</option>
+                <option value="INVENTORY">Inventory</option>
+                <option value="IN_USE">In-Use</option>
+                <option value="DEFERRED">Deferred</option>
+                <option value="SURPLUSED">Disposed</option>
+              </select>
+            </div>
+            <div>
+              <label for="filterDeviceType">Device Type</label>
+              <input id="filterDeviceType" type="text" placeholder="Computer" />
+            </div>
+            <div>
+              <label for="filterDepartment">Department</label>
+              <input id="filterDepartment" type="text" list="filterDepartmentOptions" placeholder="All or type department" />
+              <datalist id="filterDepartmentOptions">
+                <option value="Finance"></option>
+                <option value="IT"></option>
+                <option value="Office Of President"></option>
+                <option value="HR"></option>
+                <option value="Culinary"></option>
+              </datalist>
+            </div>
+            <div>
+              <label for="filterLifecycleYear">Replacement Year</label>
+              <input id="filterLifecycleYear" type="number" min="2000" max="2100" step="1" placeholder="2028" />
+            </div>
+            <div class="inline-action">
+              <button type="button" class="ghost" id="clearFiltersBtn">Clear Filters</button>
+            </div>
+          </div>
+        </details>
+        <div class="search-meta" id="searchMeta">Showing all assets.</div>
+        <div class="stats">
+          <div class="stat"><small>Total</small><strong id="totalCount">0</strong></div>
+          <div class="stat"><small>Inventory</small><strong id="inventoryCount">0</strong></div>
+          <div class="stat"><small>In-Use</small><strong id="inUseCount">0</strong></div>
+          <div class="stat"><small>Deferred</small><strong id="deferredCount">0</strong></div>
+        </div>
+
+        <div class="table-wrap">
+          <button
+            type="button"
+            class="ghost icon-btn table-refresh-btn"
+            id="refreshDataBtn"
+            title="Refresh data"
+            aria-label="Refresh data"
+          >↻</button>
+          <table>
+            <thead>
+              <tr>
+                <th data-col="assetTag">Asset Tag</th>
+                <th data-col="assetName">Asset Name</th>
+                <th data-col="typeModel">Type / Model</th>
+                <th data-col="assignedTo">Assigned User</th>
+                <th data-col="location">Location</th>
+                <th data-col="department">Department</th>
+                <th data-col="primary">Status</th>
+                <th data-col="notes">Notes</th>
+                <th data-col="action">Action</th>
+              </tr>
+            </thead>
+            <tbody id="assetRows"></tbody>
+          </table>
+          <div id="emptyState" class="empty">No assets added yet.</div>
+        </div>
+        <div id="paginationControls" class="pagination"></div>
+      </section>
+    </section>
+    <div id="panelOverlay" class="panel-overlay" hidden></div>
+    <section class="dashboard-modal" id="dashboardModal" hidden aria-hidden="true">
+      <div class="panel-head">
+        <h2>Reporting Dashboard</h2>
+        <button type="button" class="ghost" id="closeDashboardBtn">X</button>
+      </div>
+
+      <div class="filters-row dashboard-filters">
+        <div>
+          <label for="dashDepartment">Department</label>
+          <select id="dashDepartment">
+            <option value="">All departments</option>
+          </select>
+        </div>
+        <div>
+          <label for="dashStatus">Status</label>
+          <select id="dashStatus">
+            <option value="">All</option>
+            <option value="INVENTORY">Inventory</option>
+            <option value="IN_USE">In-Use</option>
+            <option value="DEFERRED">Deferred</option>
+            <option value="SURPLUSED">Disposed</option>
+          </select>
+        </div>
+        <div>
+          <label for="dashYear">Lifecycle Year</label>
+          <input id="dashYear" type="number" min="2000" max="2100" step="1" placeholder="All years" />
+        </div>
+        <div class="inline-action">
+          <button type="button" class="ghost" id="clearDashFiltersBtn">Clear Filters</button>
+        </div>
+      </div>
+
+      <div class="search-meta" id="dashMeta">Showing all assets in dashboard.</div>
+
+      <section class="reporting-dashboard report-inside-modal">
+        <div class="report-grid">
+          <div class="report-card">
+            <small>Computers Past Replacement</small>
+            <strong id="repComputersPast">0</strong>
+          </div>
+          <div class="report-card">
+            <small>Assets Past Replacement</small>
+            <strong id="repAssetsPast">0</strong>
+          </div>
+          <div class="report-card">
+            <small>Due This Year</small>
+            <strong id="repDueThisYear">0</strong>
+          </div>
+          <div class="report-card">
+            <small>Due Next Year</small>
+            <strong id="repDueNextYear">0</strong>
+          </div>
+        </div>
+
+        <div class="chart-grid">
+          <div class="chart-card">
+            <h4>Status Mix</h4>
+            <canvas id="statusPieChart" width="280" height="280"></canvas>
+            <div id="statusPieLegend" class="chart-legend"></div>
+          </div>
+          <div class="chart-card">
+            <h4>Lifecycle Buckets Mix</h4>
+            <canvas id="bucketPieChart" width="280" height="280"></canvas>
+            <div id="bucketPieLegend" class="chart-legend"></div>
+          </div>
+        </div>
+
+        <div class="report-split">
+          <div class="report-block">
+            <h4>Replacement By Department</h4>
+            <div class="table-wrap">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Department</th>
+                    <th>Past</th>
+                    <th>Due This Year</th>
+                    <th>Due Next Year</th>
+                  </tr>
+                </thead>
+                <tbody id="repDeptRows"></tbody>
+              </table>
+            </div>
+          </div>
+          <div class="report-block">
+            <h4>Lifecycle Year Buckets</h4>
+            <div class="table-wrap">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Bucket</th>
+                    <th>Count</th>
+                  </tr>
+                </thead>
+                <tbody id="repBucketRows"></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </section>
+    </section>
+    <div id="dashboardOverlay" class="panel-overlay" hidden></div>
+    <section class="asset-details-modal" id="assetDetailsModal" hidden aria-hidden="true">
+        <div class="panel-head">
+          <h2>Asset Details</h2>
+          <div class="panel-head-actions">
+            <button type="button" class="primary" id="editFromDetailsBtn">Edit</button>
+            <button type="button" class="danger" id="deleteFromDetailsBtn">Delete</button>
+            <button type="button" class="ghost" id="closeAssetDetailsBtn">Close</button>
+          </div>
+        </div>
+      <div class="details-grid">
+        <div class="detail-item"><small>Asset Name</small><strong id="detailAssetName">-</strong></div>
+        <div class="detail-item"><small>Asset Tag</small><strong id="detailAssetTag">-</strong></div>
+        <div class="detail-item"><small>Serial #</small><strong id="detailSerialNumber">-</strong></div>
+        <div class="detail-item"><small>Device Type</small><strong id="detailDeviceType">-</strong></div>
+        <div class="detail-item"><small>Model</small><strong id="detailModel">-</strong></div>
+        <div class="detail-item"><small>Assigned User</small><strong id="detailAssignedTo">-</strong></div>
+        <div class="detail-item"><small>Location</small><strong id="detailLocation">-</strong></div>
+        <div class="detail-item"><small>Room #</small><strong id="detailRoomNumber">-</strong></div>
+        <div class="detail-item"><small>Department</small><strong id="detailDepartment">-</strong></div>
+        <div class="detail-item"><small>Purchase Date</small><strong id="detailPurchaseDate">-</strong></div>
+        <div class="detail-item"><small>Lifecycle Year</small><strong id="detailLifecycleYear">-</strong></div>
+        <div class="detail-item"><small>Asset Value</small><strong id="detailAssetValue">-</strong></div>
+        <div class="detail-item"><small>Status</small><strong id="detailPrimary">-</strong></div>
+        <div class="detail-item"><small>Delete Request</small><strong id="detailDeleteRequest">-</strong></div>
+        <div class="detail-item detail-wide"><small>Notes</small><strong id="detailNotes">-</strong></div>
+      </div>
+      <div class="comments-section">
+        <h3>Asset Activity</h3>
+        <div class="comment-form-row">
+          <input id="assetCommentInput" type="text" maxlength="300" placeholder="Add an update or activity note..." />
+          <button type="button" class="primary" id="addAssetCommentBtn">Post</button>
+        </div>
+        <div id="assetCommentMeta" class="helper">No activity notes yet.</div>
+        <div id="assetCommentTimeline" class="comment-timeline"></div>
+      </div>
+    </section>
+    <div id="detailsOverlay" class="panel-overlay" hidden></div>
+    <section class="asset-details-modal" id="departmentAdminModal" hidden aria-hidden="true">
+      <div class="panel-head">
+        <h2>Department Management</h2>
+        <button type="button" class="ghost" id="closeDepartmentAdminBtn">Close</button>
+      </div>
+      <div class="grid">
+        <div>
+          <label for="departmentAdminInput">Add Department</label>
+          <div class="dept-manage">
+            <input id="departmentAdminInput" type="text" placeholder="Department name" />
+            <button type="button" class="primary" id="departmentAdminAddBtn">Add</button>
+          </div>
+        </div>
+        <div>
+          <label for="departmentAdminSelect">Remove Department</label>
+          <div class="dept-manage">
+            <select id="departmentAdminSelect"></select>
+            <button type="button" class="danger" id="departmentAdminRemoveBtn">Remove</button>
+          </div>
+          <div class="helper">If assets are assigned, choose to move them or mark as Unassigned.</div>
+        </div>
+        <div class="filters-panel" id="departmentImpactPanel" hidden>
+          <div id="departmentImpactText" class="search-meta"></div>
+          <div class="row-2">
+            <div>
+              <label for="departmentMoveTargetSelect">Move assets to</label>
+              <select id="departmentMoveTargetSelect"></select>
+            </div>
+            <div class="btn-row">
+              <button type="button" class="primary" id="departmentMoveConfirmBtn">Move Assets & Remove</button>
+              <button type="button" class="danger" id="departmentDeleteAnywayBtn">Delete Anyway</button>
+              <button type="button" class="ghost" id="departmentImpactCancelBtn">Cancel</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+    <div id="departmentAdminOverlay" class="panel-overlay" hidden></div>
+    <section class="asset-details-modal" id="userAdminModal" hidden aria-hidden="true">
+      <div class="panel-head">
+        <h2>User Management</h2>
+        <button type="button" class="ghost" id="closeUserAdminBtn">Close</button>
+      </div>
+      <div class="grid">
+        <div class="row-2">
+          <div>
+            <label for="newAgentUsername">Agent Username or Email</label>
+            <input id="newAgentUsername" type="text" placeholder="agent.jdoe or agent@pcc.local" />
+          </div>
+          <div>
+            <label for="newAgentPassword">Temporary Password</label>
+            <input id="newAgentPassword" type="password" placeholder="Create a strong password" />
+          </div>
+        </div>
+        <div class="btn-row">
+          <button type="button" class="primary" id="createAgentBtn">Create Agent Account</button>
+        </div>
+        <div class="row-2">
+          <div>
+            <label for="resetTargetLabel">Selected Account</label>
+            <input id="resetTargetLabel" type="text" placeholder="Choose account from table below" readonly />
+            <input id="resetTargetUserId" type="hidden" />
+          </div>
+          <div>
+            <label for="resetAccountPassword">New Password</label>
+            <input id="resetAccountPassword" type="password" placeholder="At least 12 chars with upper/lower/number/symbol" />
+          </div>
+        </div>
+        <div class="btn-row">
+          <button type="button" class="danger" id="resetAccountPasswordBtn" disabled>Reset Account Password</button>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Username</th>
+                <th>Role</th>
+                <th>Created By</th>
+                <th>Created At</th>
+                <th>Action</th>
+              </tr>
+            </thead>
+            <tbody id="userAdminRows"></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+    <div id="userAdminOverlay" class="panel-overlay" hidden></div>
+    <div id="appDialogOverlay" class="panel-overlay" hidden></div>
+    <div id="fileOpsOverlay" class="panel-overlay" hidden></div>
+    <section class="app-dialog" id="fileOpsDialog" hidden aria-hidden="true">
+      <h3>Import / Export</h3>
+      <p>Choose file operation for asset records.</p>
+      <div class="app-dialog-actions">
+        <button type="button" class="ghost" id="fileOpsImportBtn">Import CSV</button>
+        <button type="button" class="primary" id="fileOpsExportBtn">Export Filtered CSV</button>
+        <button type="button" class="ghost" id="fileOpsCloseBtn">Close</button>
+      </div>
+    </section>
+    <section class="app-dialog" id="appDialog" hidden aria-hidden="true">
+      <h3 id="appDialogTitle">Confirm Action</h3>
+      <p id="appDialogMessage">Are you sure?</p>
+      <div class="app-dialog-actions">
+        <button type="button" class="ghost" id="appDialogCancelBtn">Cancel</button>
+        <button type="button" class="primary" id="appDialogConfirmBtn">Confirm</button>
+      </div>
+    </section>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="./js/supabase.config.js"></script>
+  <script src="./js/auth.shared.js"></script>
+  <script src="./js/app.bundle.js"></script>
+</body>
+</html>

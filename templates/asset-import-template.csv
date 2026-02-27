@@ -1,0 +1,4 @@
+Asset Tag,Device Type,Model,Assigned User,Location,Department,Primary Status,Disposition Status,Reason/Notes
+IT-FA-1001,Laptop,Latitude 5440,Jane Doe,Main Office,IT,IN_USE,N/A,Assigned for daily operations
+IT-FA-1002,Desktop,OptiPlex 7010,,Storage Room,Finance,INVENTORY,N/A,Available inventory
+IT-FA-1003,Printer,HP LaserJet Pro 400,,Warehouse,HR,SURPLUSED,DEFERRED,Deferred disposal review

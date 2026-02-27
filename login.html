@@ -1,0 +1,98 @@
+﻿<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>PCC IT Asset Tagging Login</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&family=IBM+Plex+Mono:wght@400;600&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="./css/styles.css?v=20260227b" />
+</head>
+<body>
+  <div class="shell">
+    <section class="header">
+      <div class="brand-wrap">
+        <div class="brand-mark">
+          <img
+            src="./assets/pcc-logo.jpg"
+            alt="Polynesian Cultural Center logo"
+            onerror="this.style.display='none'; this.nextElementSibling.style.display='block';"
+          />
+          <div class="brand-fallback">PCC</div>
+        </div>
+        <div class="brand-copy">
+          <h1>PCC IT Asset Tagging</h1>
+          <p class="sub">Secure access portal for asset inventory, lifecycle, and reporting management.</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="card" style="max-width: 520px; margin: 0 auto;">
+      <h2>Sign In</h2>
+      <form id="loginForm" class="grid">
+        <div>
+          <label for="loginUsername">Email</label>
+          <input id="loginUsername" name="username" autocomplete="username" required />
+        </div>
+        <div>
+          <label for="loginPassword">Password</label>
+          <div class="password-field">
+            <input id="loginPassword" name="password" type="password" autocomplete="current-password" required />
+            <button type="button" class="password-toggle" id="togglePasswordBtn" aria-label="Show password" title="Show password">
+                            <span class="eye-icons" aria-hidden="true">
+                <svg class="eye-icon eye-open" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7S1 12 1 12z"></path>
+                  <circle cx="12" cy="12" r="3"></circle>
+                </svg>
+                <svg class="eye-icon eye-closed" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="m3 3 18 18"></path>
+                  <path d="M10.6 10.6a3 3 0 0 0 4.24 4.24"></path>
+                  <path d="M9.9 4.24A10.9 10.9 0 0 1 12 4c7 0 11 8 11 8a21.9 21.9 0 0 1-5.16 6.19"></path>
+                  <path d="M6.61 6.61A22.1 22.1 0 0 0 1 12s4 8 11 8a10.9 10.9 0 0 0 5.39-1.39"></path>
+                </svg>
+              </span>
+            </button>
+          </div>
+        </div>
+        <div class="login-options">
+          <label class="remember-wrap" for="rememberMe">
+            <input id="rememberMe" name="rememberMe" type="checkbox" />
+            <span>Remember me on this browser</span>
+          </label>
+        </div>
+        <div class="btn-row">
+          <button type="submit" class="primary">Login</button>
+        </div>
+      </form>
+      <div id="loginError" class="helper" style="color:#991b1b; margin-top:8px;"></div>
+    </section>
+  </div>
+  <div id="loginLoadingOverlay" class="login-loading-overlay" hidden aria-hidden="true">
+    <div class="login-loading-card">
+      <div class="loading-logo-wrap">
+        <img
+          src="./assets/pcc-logo.jpg"
+          alt="Polynesian Cultural Center logo"
+          onerror="this.style.display='none'; this.nextElementSibling.style.display='block';"
+        />
+        <div class="loading-logo-fallback">PCC</div>
+      </div>
+      <h3>Signing you in...</h3>
+      <p>Preparing your secure asset workspace</p>
+      <div class="loading-track" aria-hidden="true">
+        <span></span>
+      </div>
+      <div class="btn-row" style="justify-content:center; margin-top:12px;">
+        <a id="loadingContinueLink" class="btn-link ghost" href="./index.html">Continue to dashboard</a>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="./js/supabase.config.js"></script>
+  <script src="./js/auth.shared.js"></script>
+  <script src="./js/login.js?v=20260227b"></script>
+</body>
+</html>
+

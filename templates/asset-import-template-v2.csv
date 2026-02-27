@@ -1,0 +1,4 @@
+Asset Tag,Device Type,Model,Assigned User,Location,Department,Purchase Date,Lifecycle Date,Asset Value,Primary Status,Disposition Status,Reason/Notes
+IT-FA-1001,Laptop,Latitude 5440,Jane Doe,Main Office,IT,2024-01-15,2028-01-15,1299.99,IN_USE,N/A,Assigned for daily operations
+IT-FA-1002,Desktop,OptiPlex 7010,,Storage Room,Finance,2023-09-01,2027-09-01,899.50,INVENTORY,N/A,Available inventory
+IT-FA-1003,Printer,HP LaserJet Pro 400,,Warehouse,HR,2020-05-20,2025-05-20,450.00,SURPLUSED,DEFERRED,Deferred disposal review

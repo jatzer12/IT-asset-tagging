@@ -1,0 +1,89 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Mass Delete Assets</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&family=IBM+Plex+Mono:wght@400;600&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="./css/styles.css" />
+</head>
+<body>
+  <div class="shell">
+    <section class="header">
+      <div class="brand-wrap">
+        <div class="brand-mark">
+          <img
+            src="./assets/pcc-logo.jpg"
+            alt="Polynesian Cultural Center logo"
+            onerror="this.style.display='none'; this.nextElementSibling.style.display='block';"
+          />
+          <div class="brand-fallback">PCC</div>
+        </div>
+        <div class="brand-copy">
+          <h1>Mass Delete Assets</h1>
+          <p class="sub">Delete multiple records in one operation. Use caution: this action cannot be undone.</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="card">
+      <div class="inventory-head">
+        <h2>Bulk Remove</h2>
+        <a class="ghost btn-link" href="./index.html">Back To Inventory</a>
+      </div>
+      <div class="search-row">
+        <div>
+          <label for="bulkSearchInput">Search</label>
+          <input id="bulkSearchInput" type="text" placeholder="Asset tag, name, serial, assigned user" />
+        </div>
+        <button type="button" class="ghost" id="clearBulkSearchBtn">Clear Search</button>
+        <button type="button" class="ghost" id="toggleAllBtn">Select Visible</button>
+      </div>
+      <div class="search-meta" id="bulkMeta">No assets loaded.</div>
+
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th style="width:60px;">Pick</th>
+              <th>Asset Tag</th>
+              <th>Asset Name</th>
+              <th>Type / Model</th>
+              <th>Assigned User</th>
+              <th>Department</th>
+            </tr>
+          </thead>
+          <tbody id="bulkRows"></tbody>
+        </table>
+        <div id="bulkEmptyState" class="empty">No assets available.</div>
+      </div>
+
+      <div class="filters-panel" style="margin-top:12px;">
+        <label style="display:flex; gap:8px; align-items:center; margin:0;">
+          <input id="bulkAgreement" type="checkbox" style="width:auto;" />
+          I understand this will permanently delete selected assets.
+        </label>
+        <div class="btn-row" style="margin-top:10px;">
+          <button type="button" class="danger" id="bulkDeleteBtn" disabled>Delete Selected</button>
+        </div>
+      </div>
+    </section>
+    <div id="bulkDialogOverlay" class="panel-overlay" hidden></div>
+    <section class="app-dialog" id="bulkDialog" hidden aria-hidden="true">
+      <h3 id="bulkDialogTitle">Confirm Action</h3>
+      <p id="bulkDialogMessage">Are you sure?</p>
+      <div class="app-dialog-actions">
+        <button type="button" class="ghost" id="bulkDialogCancelBtn">Cancel</button>
+        <button type="button" class="primary" id="bulkDialogConfirmBtn">Confirm</button>
+      </div>
+    </section>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="./js/supabase.config.js"></script>
+  <script src="./js/auth.shared.js"></script>
+  <script src="./js/mass-delete.js"></script>
+</body>
+</html>

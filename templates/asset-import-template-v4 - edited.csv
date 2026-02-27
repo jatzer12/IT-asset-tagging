@@ -1,0 +1,27 @@
+Asset Name,Asset Tag,Serial Number,Device Type,Model,Assigned User,Location,Room Number,Department,Purchase Date,Lifecycle Year,Asset Value,Primary Status,Disposition Status,Reason/Notes
+BAN-TAB-RSV,8221,B9235S2,Laptop,Latitude 5290 2-in-1,,Banyan,,Culinary Services,6/25/2019,2023,$220.00 ,SURPLUSED,N/A,Lary's CPU
+BAN-SOLIAIL-RSV,8261,GJ4RPX2,Desktop,Optiplex 7060,"Apelu, Elisabeth",Banyan,,Culinary Services,6/25/2019,2023,$500.00 ,SURPLUSED,N/A,
+PCC-ADM-HRT2,8325,7XJK3Q3,Desktop,Optiplex 7000,Culinary Services HR Intern,Central Kitchen,,Culinary Services,6/5/2021,2026,$640.00 ,SURPLUSED,N/A,DO NOT REPLACE!!!
+PCC-ADM-HRR01,9034,3VQX2Q3,Desktop,Optiplex 7000,,Central Kitchen,,Culinary Services,10/20/2022,2027,$640.00 ,IN_USE,N/A,
+PCC-FWF-KTC5,9054,F9JX2Q3,Desktop,Optiplex 7000,Kitchen Production,Central Kitchen,,Culinary Services,6/5/2021,2026,$640.00 ,IN_USE,N/A,
+PCC-FWF-KTC4,9055,BBJX2Q3,Desktop,Optiplex 7000,"Gamil, Merril",Central Kitchen,,Culinary Services,6/5/2021,2026,$640.00 ,SURPLUSED,N/A,
+PCC-FWF-KTC3,9056,1TQX2Q3,Desktop,Optiplex 7000,"Pula, Mena",Central Kitchen,,Culinary Services,6/5/2021,2026,$640.00 ,IN_USE,N/A,
+PCC-FWF-KTC1,9058,DWJK3Q3,Desktop,Optiplex 7000,,Central Kitchen,,Culinary Services,6/5/2021,2026,$700.00 ,IN_USE,N/A,
+PCC-BAN-FBV1,9084,JWJK3Q3,Desktop,Optiplex 7000,"De Castro, Jahsmin ",Banyan,,Culinary Services,6/5/2021,2026,$640.00 ,SURPLUSED,N/A,
+PCC-BAN-FBV6,9085,49JX2Q3,Desktop,Optiplex 7000,"Keanu, Misty",Banyan,,Culinary Services,6/5/2021,2026,$640.00 ,SURPLUSED,N/A,
+PCC-BAN-FBV3,9086,2CK03Q3,Desktop,Optiplex 7000,"Andaca, Lia",Banyan,,Culinary Services,6/5/2021,2026,$640.00 ,SURPLUSED,N/A,
+PCC-BAN-FBV4,9087,8SQX2Q3,Desktop,Optiplex 7000,Dining Services Lead,Gateway,,Culinary Services,6/5/2021,2026,$640.00 ,IN_USE,N/A,
+PCC-BAN-FBV5,9088,69JX2Q3,Desktop,Optiplex 7000,Safety Student,Central Kitchen,,Culinary Services,6/5/2021,2026,$640.00 ,IN_USE,N/A,
+PCC-HM3-PND1,9142,7TQX2Q3,Desktop,Optiplex 7000,"Schlotman, Lori",Marketplace Building 1,,Culinary Services,6/15/2022,2027,$640.00 ,IN_USE,N/A,
+PCC-BAN-FBV7,9503,6BJX2Q3,Desktop,Optiplex 7000,"Mataafa, Vonnie",Hale Aloha,,Culinary Services,6/15/2022,2027,$640.00 ,SURPLUSED,N/A,
+PCC-HM1-HR4,9512,HBK03Q3,Desktop,Optiplex 7000,,Banyan,,Culinary Services,6/15/2022,2027,$640.00 ,IN_USE,N/A,Display Port broken 
+PCC-DEMALATAC-CUL,9552,FZBKWB4,Desktop,Dell Pro Micro Plus ,"Demalata, Chelsea",Central Kitchen,,Culinary Services,8/1/2025,2029,$700.00 ,IN_USE,N/A,
+PCC-BREWERK-IS,9575,4GB3G24,Desktop,OptiPlex Micro 7010,,Central Kitchen,,Culinary Services,5/23/2024,2028,$650.00 ,IN_USE,N/A,
+PCC-GW-TRA1,9660,4KRKWB4,Desktop,Dell Pro Micro Plus,,Gateway,,Culinary Services,8/1/2025,2029,,IN_USE,N/A,
+PCC-GWCUL-DIR1,9661,DW7KWB4,Desktop,Dell Pro Micro Plus,"Keanu, Misty",Gateway,,Culinary Services,8/1/2025,2029,,IN_USE,N/A,
+PCC-CK-KIT1,9662,2KRKWB4,Desktop,Dell Pro Micro Plus,Chad,Central Kitchen,,Culinary Services,8/1/2025,2029,,IN_USE,N/A,
+PCC-KITCHOFF,9666,DZBKWB4,Desktop,Dell Pro Micro Plus,Chef Tai ,Main Kitchen ,,Culinary Services,8/2/2025,2029,$680.00 ,IN_USE,N/A,SPARE
+PCC-CT-KIT2,9674,BW7KWB4,Desktop,Dell Pro Micro Plus,"Lolotai, Taeao",Central Kitchen,,Culinary Services,8/1/2025,2029,$680.00 ,IN_USE,N/A,
+PCC-COOL-NATE,9675,40CKWB4,Desktop,Dell Pro Micro Plus,,Gateway,,Culinary Services,8/1/2025,2029,$680.00 ,IN_USE,N/A,
+DESKTOP-E2FKPMD,,,Desktop,Optiplex 7050,,Central Kitchen,,Culinary Services,12/30/2017,2021,$700.00 ,SURPLUSED,N/A,
+KTCH-TV2-FS,,56LWYLP2,Desktop,Optiplex 7050,,Central Kitchen,,Culinary Services,12/30/2017,2021,$700.00 ,SURPLUSED,N/A,

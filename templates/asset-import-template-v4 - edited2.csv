@@ -1,0 +1,27 @@
+Asset Name,Asset Tag,Serial Number,Device Type,Model,Assigned User,Location,Room Number,Department,Purchase Date,Lifecycle Year,Asset Value,Primary Status,Disposition Status,Reason/Notes
+CUL-AHHOYT-DT,8151,1MGZSM2,Desktop,Optiplex 7050,,Facilities Management,Facilities Office (Upstairs),Facilities Management,12/30/2017,2021,$180.00 ,SURPLUSED,N/A,
+MB1-LAKET-MNT,8170,6DCXVP2,Desktop,Optiplex 7050,,Facilities Management,Custodian Office,Facilities Management,8/2/2018,2022,$180.00 ,SURPLUSED,N/A,Ready for recycle
+DESKTOP-13QJMDB,8186,6GL1WP2,Desktop,Optiplex 7050,Regina Valentine,Facilities Management,Facilities Office (Receiving),Facilities Management,8/2/2018,2022,$700.00 ,SURPLUSED,N/A,
+MB2-OFFICE1-MNT,8235,C9VD1S2,Desktop,Optiplex 7060,,Facilities Management,Facilities Office (Upstairs),Facilities Management,6/25/2019,2023,$500.00 ,SURPLUSED,N/A,Ready for recycle
+PCC-GW-AUD1,8330,HRQX2Q3,Desktop,Optiplex 7000,"Niumatalolo, Kimball",Facilities Management,Electrical Office,Facilities Management,6/5/2021,2025,$640.00 ,IN_USE,N/A,
+PCC-FAC-MNT1,8339,487K3Q3,Desktop,Optiplex 7000,"Falanai, Mele",Facilities Management,Facilities Office (Upstairs),Facilities Management,6/5/2021,2025,$640.00 ,SURPLUSED,N/A,
+PCC-FAC-MNT2,8340,F77K3Q3,Desktop,Optiplex 7000,"Tauliili, Isapela",Facilities Management,Facilities Office (Upstairs),Facilities Management,6/5/2021,2025,$640.00 ,SURPLUSED,N/A,
+PCC-FAC-MNT3,8341,C77K3Q3,Desktop,Optiplex 7000,Gwyneth Valerio,Facilities Management,Facilities Office (Upstairs),Facilities Management,6/5/2021,2025,$640.00 ,SURPLUSED,N/A,
+PCC-FAC-MNT4,8342,3BJX2Q3,Desktop,Optiplex 7000,,Facilities Management,Facilities Office (Upstairs),Facilities Management,6/5/2021,2025,$640.00 ,IN_USE,N/A,
+PCC-FAC-MNT5,8343,HWJK3Q3,Desktop,Optiplex 7000,James Pahayo,Facilities Management,Facilities Office (Upstairs),Facilities Management,6/5/2021,2025,$640.00 ,SURPLUSED,N/A,
+PCC-FAC-RCV1,8344,FRQX2Q3,Desktop,Optiplex 7000,"Keanu, Mohea",Facilities Management,Facilities Office (Receiving),Facilities Management,6/5/2021,2025,$640.00 ,SURPLUSED,N/A,
+PCC-FAC-RCV2,8345,BRQX2Q3,Desktop,Optiplex 7000,"Keanu, Mohea",Facilities Management,Facilities Office (Receiving),Facilities Management,6/5/2021,2025,$640.00 ,SURPLUSED,N/A,
+PCC-FAC-RCV3,8346,JCK03Q3,Desktop,Optiplex 7000,"Robertson, Elvis",Facilities Management,Facilities Office (Receiving),Facilities Management,6/5/2021,2025,$640.00 ,SURPLUSED,N/A,
+PCC-TEMP2,8486,6DVWVP2,Desktop,Optiplex 7050,Charity Baptista,Facilities Management,Facilities Management (Upstairs),Facilities Management,8/2/2018,2022,$700.00 ,SURPLUSED,N/A,Do Not Replace
+PCC-ADM-HRE7,9135,FXJK3Q3,Desktop,Optiplex 7000,"Pononcio, Daniel",Facilities Management,Facilities Office (Upstairs),Facilities Management,6/15/2022,2026,$640.00 ,IN_USE,N/A,
+PCC-FAC-SEC1,9140,H9JX2Q3,Desktop,Optiplex 7000,"Niumatalolo,Lau",Facilities Management,Facilities Office (Upstairs),Facilities Management,6/15/2022,2026,$640.00 ,IN_USE,N/A,
+DESKTOP-D2GEBID,9506,CXJK3Q3,Desktop,Optiplex 7000,"Nancy, Lin",Facilities Management,Facilities Office (Upstairs),Facilities Management,6/14/2022,2026,$640.00 ,IN_USE,N/A,
+PCC-MEMEOFJ-MNT,9580,7GB3G24,Desktop,OptiPlex Micro 7010,,Facilities Management,Planning,Facilities Management,5/23/2024,2028,$700.00 ,IN_USE,N/A,
+PCC-LAKET-MNT,9581,2FB3G24,Desktop,OptiPlex Micro 7010,"Enos, Hensley",Facilities Management,Grounds Office,Facilities Management,5/23/2024,2028,$700.00 ,IN_USE,N/A,
+PCC-MUAINAJ-HR,9609,JDB3G24,Desktop,OptiPlex Micro 7010,Mailroom Worker,Facilities Management,Mailroom,Facilities Management,5/23/2024,2028,$700.00 ,IN_USE,N/A,
+PCM-FAC-MCM1,9678,50CKWB4,Desktop,Dell Pro Micro Plus,,Facilities Management ,Facilities Office (Upstairs),Facilities Management ,8/2/2025,2029,$680.00 ,IN_USE,N/A,
+PCC-FAC-MCM2l,9679,FW7KWB4,Desktop,Dell Pro Micro Plus,,Facilities Management ,Facilities Office (Upstairs),Facilities Management ,8/2/2025,2029,$680.00 ,IN_USE,N/A,
+PCC-FAC-SUP,9681,8X7KWB4,Desktop,Dell Pro Micro Plus,"Moeai, Isapella",Facilities Management ,Facilities Office (Upstairs),Facilities Management,8/1/2025,2029,$680.00 ,IN_USE,N/A,
+,,,,,,,,,,,,,,
+,,,,,,,,,,,,,,
+,,,,,,,,,,,,,,
