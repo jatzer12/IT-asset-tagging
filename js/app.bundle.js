@@ -917,7 +917,7 @@
           timestamp: String(item.created_at || ""),
           username: usernameByUserId.get(userId)
             || (userId && currentUserId && userId === String(currentUserId) ? String(currentUser.username || "").trim() : "")
-            || "Unknown User"
+            || ""
         };
       });
 
