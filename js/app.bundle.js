@@ -80,7 +80,7 @@
           id: id || (timestamp + "|" + text).replace(/\s+/g, "_").slice(0, 120),
           text: text,
           timestamp: timestamp,
-          username: username || "system"
+          username: username || "Unknown User"
         };
       })
       .filter(Boolean);
@@ -915,7 +915,10 @@
           id: String(item.id),
           text: String(item.comment_text || "").trim(),
           timestamp: String(item.created_at || ""),
-          username: usernameByUserId.get(userId) || "system"
+          username: usernameByUserId.get(userId)
+            || (userId && currentUserId && userId === String(currentUserId) ? String(currentUser.username || "").trim() : "")
+            || userId
+            || "Unknown User"
         };
       });
 
@@ -1014,6 +1017,9 @@
     });
 
     const usernameByUserId = new Map();
+    if (currentUserId) {
+      usernameByUserId.set(String(currentUserId), String(currentUser.username || "").trim());
+    }
     const userIds = Array.from(userIdSet);
     if (userIds.length) {
       const profilesResult = await supabaseClient
@@ -1043,7 +1049,7 @@
       id: String(Date.now()) + "-" + Math.random().toString(36).slice(2, 8),
       text: String(text || "").trim(),
       timestamp: timestamp,
-      username: String(username || "system").trim() || "system"
+      username: String(username || "Unknown User").trim() || "Unknown User"
     };
   }
 
@@ -1075,7 +1081,7 @@
       const footer = document.createElement("div");
       footer.className = "comment-meta";
       const user = document.createElement("span");
-      user.textContent = "By: " + (item.username || "system");
+      user.textContent = "By: " + (item.username || "Unknown User");
       footer.appendChild(user);
       if (isManagerOrSupervisor()) {
         const removeBtn = document.createElement("button");
