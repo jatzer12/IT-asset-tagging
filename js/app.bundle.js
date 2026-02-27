@@ -71,8 +71,8 @@
         const timestamp = String(item && item.timestamp ? item.timestamp : "").trim();
         let username = String(item && item.username ? item.username : "").trim();
         const legacyMatch = text.match(/\(posted by\s+([^)]+)\)\s*$/i);
-        if (!username && legacyMatch) {
-          username = String(legacyMatch[1] || "").trim();
+        if (legacyMatch) {
+          if (!username) username = String(legacyMatch[1] || "").trim();
           text = text.replace(/\(posted by\s+([^)]+)\)\s*$/i, "").trim();
         }
         if (!text || !timestamp) return null;
