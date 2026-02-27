@@ -1830,24 +1830,36 @@
       "Confirm " + (editingTag ? "update" : "save") + " for asset " + (record.assetTag || "(no tag)") + "?",
       async function () {
         const existingIndex = getAssetIndexByTag(record.assetTag);
+        const editingIndex = editingTag ? getAssetIndexByTag(editingTag) : -1;
         if (!editingTag && existingIndex >= 0) {
           showAppNotice("Duplicate Asset Tag", "Asset Tag already exists. Use Edit instead.");
           return;
         }
+        if (editingTag && existingIndex >= 0 && existingIndex !== editingIndex) {
+          showAppNotice("Duplicate Asset Tag", "Asset Tag already exists for another asset.");
+          return;
+        }
 
         if (supabaseClient) {
-          const editingIndex = editingTag ? getAssetIndexByTag(editingTag) : -1;
           const existingAsset = editingIndex >= 0 ? assets[editingIndex] : null;
           const payload = mapUiAssetToDb(record);
-          if (!existingAsset) payload.created_by = currentUserId;
-          const query = supabaseClient.from("assets").upsert(payload, { onConflict: "asset_tag" }).select("id,asset_tag");
-          const saveResult = await query;
+          let saveResult;
+          if (existingAsset && existingAsset.id) {
+            saveResult = await supabaseClient
+              .from("assets")
+              .update(payload)
+              .eq("id", Number(existingAsset.id))
+              .select("id,asset_tag");
+          } else {
+            if (!existingAsset) payload.created_by = currentUserId;
+            saveResult = await supabaseClient
+              .from("assets")
+              .upsert(payload, { onConflict: "asset_tag" })
+              .select("id,asset_tag");
+          }
           if (saveResult.error) {
             showAppNotice("Save Error", saveResult.error.message || "Unable to save asset to Supabase.");
             return;
-          }
-          if (existingAsset && existingAsset.assetTag && existingAsset.assetTag !== record.assetTag) {
-            await supabaseClient.from("assets").delete().eq("asset_tag", existingAsset.assetTag);
           }
           if (record.department) {
             await supabaseClient
