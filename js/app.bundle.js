@@ -1021,14 +1021,21 @@
     }
     const userIds = Array.from(userIdSet);
     if (userIds.length) {
-      const profilesResult = await supabaseClient
-        .from("profiles")
-        .select("id, username")
-        .in("id", userIds);
-      if (!profilesResult.error && Array.isArray(profilesResult.data)) {
-        profilesResult.data.forEach(function (item) {
+      const lookupResult = await supabaseClient.rpc("lookup_usernames", { user_ids: userIds });
+      if (!lookupResult.error && Array.isArray(lookupResult.data)) {
+        lookupResult.data.forEach(function (item) {
           usernameByUserId.set(String(item.id), String(item.username || ""));
         });
+      } else {
+        const profilesResult = await supabaseClient
+          .from("profiles")
+          .select("id, username")
+          .in("id", userIds);
+        if (!profilesResult.error && Array.isArray(profilesResult.data)) {
+          profilesResult.data.forEach(function (item) {
+            usernameByUserId.set(String(item.id), String(item.username || ""));
+          });
+        }
       }
     }
 

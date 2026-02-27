@@ -42,6 +42,25 @@ $$;
 revoke all on function public.current_app_role() from public;
 grant execute on function public.current_app_role() to authenticated;
 
+-- Resolve display names for user IDs without exposing full profiles to all roles.
+create or replace function public.lookup_usernames(user_ids uuid[])
+returns table(id uuid, username text)
+language sql
+stable
+security definer
+set search_path = public, auth
+as $$
+  select
+    p.id,
+    coalesce(nullif(p.username, ''), nullif(u.email, ''), p.id::text) as username
+  from public.profiles p
+  left join auth.users u on u.id = p.id
+  where p.id = any(user_ids)
+$$;
+
+revoke all on function public.lookup_usernames(uuid[]) from public;
+grant execute on function public.lookup_usernames(uuid[]) to authenticated;
+
 -- Indexes for faster search/filter with large asset counts.
 create index if not exists idx_assets_asset_tag on public.assets(asset_tag);
 create index if not exists idx_assets_asset_name on public.assets(asset_name);
