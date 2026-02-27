@@ -20,15 +20,6 @@ function normalizeUsername(value: unknown) {
   return String(value || "").trim();
 }
 
-function isStrongPassword(value: unknown) {
-  const pass = String(value || "");
-  return pass.length >= 12
-    && /[A-Z]/.test(pass)
-    && /[a-z]/.test(pass)
-    && /[0-9]/.test(pass)
-    && /[^A-Za-z0-9]/.test(pass);
-}
-
 function deriveEmailFromUsername(username: string) {
   if (username.includes("@")) return username.toLowerCase();
   const cleaned = username.toLowerCase().replace(/[^a-z0-9._-]/g, "");
@@ -68,9 +59,6 @@ Deno.serve(async (req) => {
   const action = normalizeAction(body.action);
   const password = String(body.password || "");
   if (!password) return json(400, { ok: false, message: "Password is required." });
-  if (!isStrongPassword(password)) {
-    return json(400, { ok: false, message: "Password must be at least 12 chars with upper, lower, number, and symbol." });
-  }
 
   const userClient = createClient(supabaseUrl, supabaseAnonKey, {
     global: {

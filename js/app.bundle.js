@@ -442,6 +442,7 @@
   let assetIndexByTag = new Map();
   let searchableAssets = [];
   let searchInputDebounceTimer = null;
+  let searchInputTouchedByUser = false;
   let panelCloseTimer = null;
   let dashboardCloseTimer = null;
   let currentViewMode = "standard";
@@ -2031,12 +2032,16 @@
 
   if (searchInput) {
     searchInput.addEventListener("input", function () {
+      searchInputTouchedByUser = true;
       if (searchInputDebounceTimer) window.clearTimeout(searchInputDebounceTimer);
       searchInputDebounceTimer = window.setTimeout(function () {
         currentPage = 1;
         renderTable();
         searchInputDebounceTimer = null;
       }, 120);
+    });
+    searchInput.addEventListener("focus", function () {
+      searchInputTouchedByUser = true;
     });
   }
   if (filterPrimaryStatus) filterPrimaryStatus.addEventListener("change", function () { currentPage = 1; renderTable(); });
@@ -2384,20 +2389,10 @@
     currentPageSize = Number.isFinite(initialSize) && initialSize > 0 ? initialSize : 10;
   }
   renderCurrentUserState();
-  if (searchInput && String(searchInput.value || "").trim()) {
-    // Prevent browser autofill from persisting user email into asset search.
-    searchInput.value = "";
-  }
-  if (searchInput) {
-    window.setTimeout(function () {
-      const value = String(searchInput.value || "").trim();
-      if (value.includes("@")) {
-        searchInput.value = "";
-        currentPage = 1;
-        renderTable();
-      }
-    }, 80);
-  }
+  enforceSearchInputClearOnLoad();
+  window.addEventListener("pageshow", function () {
+    enforceSearchInputClearOnLoad();
+  });
   rebuildAssetIndexes();
   renderTable();
   if (supabaseClient) {
@@ -2405,3 +2400,23 @@
     refreshAssetsFromSupabase();
   }
 })();
+  function clearSearchInputHard() {
+    if (!searchInput) return;
+    if (searchInputTouchedByUser) return;
+    if (String(searchInput.value || "") !== "") {
+      searchInput.value = "";
+      currentPage = 1;
+      renderTable();
+    }
+  }
+
+  function enforceSearchInputClearOnLoad() {
+    if (!searchInput) return;
+    searchInputTouchedByUser = false;
+    clearSearchInputHard();
+    // Browsers can autofill after initial paint; keep clearing briefly.
+    const delays = [40, 120, 260, 500, 900, 1400, 2200];
+    delays.forEach(function (delay) {
+      window.setTimeout(clearSearchInputHard, delay);
+    });
+  }

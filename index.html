@@ -173,7 +173,7 @@
         <div class="search-row">
           <div>
             <label for="searchInput">Search (Asset ID, Asset Name, Serial #, Assigned User)</label>
-            <input id="searchInput" type="text" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" placeholder="IT-FA-09037, Staff Laptop 01, SN-8891, or Jared Mariano" />
+            <input id="searchInput" name="assetSearch" type="search" autocomplete="off" data-lpignore="true" autocapitalize="off" autocorrect="off" spellcheck="false" placeholder="IT-FA-09037, Staff Laptop 01, SN-8891, or Jared Mariano" />
           </div>
           <button type="button" class="ghost" id="clearSearchBtn">Clear Search</button>
         </div>
@@ -442,7 +442,7 @@
           </div>
           <div>
             <label for="newAgentPassword">Temporary Password</label>
-            <input id="newAgentPassword" type="password" placeholder="Create a strong password" />
+            <input id="newAgentPassword" type="password" placeholder="Enter temporary password" />
           </div>
         </div>
         <div class="row-2">
@@ -467,7 +467,7 @@
           </div>
           <div>
             <label for="resetAccountPassword">New Password</label>
-            <input id="resetAccountPassword" type="password" placeholder="At least 12 chars with upper/lower/number/symbol" />
+            <input id="resetAccountPassword" type="password" placeholder="Enter new password" />
           </div>
         </div>
         <div class="btn-row">
