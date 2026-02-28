@@ -57,8 +57,6 @@ Deno.serve(async (req) => {
   }
 
   const action = normalizeAction(body.action);
-  const password = String(body.password || "");
-  if (!password) return json(400, { ok: false, message: "Password is required." });
 
   const userClient = createClient(supabaseUrl, supabaseAnonKey, {
     global: {
@@ -81,11 +79,13 @@ Deno.serve(async (req) => {
     .eq("id", caller.id)
     .single();
   const callerRole = String(callerProfileResult.data?.role || "").toUpperCase();
-  if (!["MANAGER", "SUPERVISOR"].includes(callerRole)) {
-    return json(403, { ok: false, message: "Only Manager/Supervisor can create agents." });
+  if (callerRole !== "MANAGER") {
+    return json(403, { ok: false, message: "Only Manager can manage users." });
   }
 
   if (action === "create_agent" || action === "create_user") {
+    const password = String(body.password || "");
+    if (!password) return json(400, { ok: false, message: "Password is required." });
     const username = normalizeUsername(body.username);
     const role = normalizeRole(body.role);
     if (!username) return json(400, { ok: false, message: "Username (or email) is required." });
@@ -112,7 +112,8 @@ Deno.serve(async (req) => {
       .upsert({
         id: createResult.data.user.id,
         username: username,
-        role: role
+        role: role,
+        created_by: caller.id
       }, { onConflict: "id" });
 
     if (profileUpsert.error) {
@@ -128,6 +129,8 @@ Deno.serve(async (req) => {
   }
 
   if (action === "reset_password") {
+    const password = String(body.password || "");
+    if (!password) return json(400, { ok: false, message: "Password is required." });
     const targetUserId = String(body.targetUserId || "").trim();
     if (!targetUserId) return json(400, { ok: false, message: "Target user id is required." });
 
@@ -141,6 +144,35 @@ Deno.serve(async (req) => {
     return json(200, {
       ok: true,
       message: "Password updated successfully."
+    });
+  }
+
+  if (action === "change_user_role" || action === "update_role") {
+    const targetUserId = String(body.targetUserId || "").trim();
+    const role = normalizeRole(body.role);
+    if (!targetUserId) return json(400, { ok: false, message: "Target user id is required." });
+    if (!["AGENT", "SUPERVISOR", "MANAGER"].includes(role)) {
+      return json(400, { ok: false, message: "Role must be AGENT, SUPERVISOR, or MANAGER." });
+    }
+    if (targetUserId === caller.id) {
+      return json(400, { ok: false, message: "You cannot change your own role." });
+    }
+
+    const profileUpdate = await adminClient
+      .from("profiles")
+      .update({ role: role })
+      .eq("id", targetUserId)
+      .select("id")
+      .single();
+
+    if (profileUpdate.error || !profileUpdate.data) {
+      return json(400, { ok: false, message: profileUpdate.error?.message || "Unable to change user role." });
+    }
+
+    return json(200, {
+      ok: true,
+      message: "User role updated successfully.",
+      role: role
     });
   }
 

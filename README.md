@@ -12,7 +12,7 @@ This folder contains a modular version of the IT Asset Tagging app for long-term
 - `js/auth.shared.js`: login/session helpers and role checks.
 - `js/mass-delete.js`: mass delete page runtime (Supabase-backed).
 - `js/dashboard.bundle.js`: dashboard page runtime (Supabase-backed).
-- `supabase/functions/create-agent/index.ts`: Supabase Edge Function for Manager/Supervisor account creation.
+- `supabase/functions/super-endpoint/index.ts`: Supabase Edge Function for Manager-only user administration.
 - `js/csv.js`: CSV parsing and normalization pipeline.
 - `js/validation.js`: business validation rules.
 - `js/normalizers.js`: reusable data normalization helpers.
@@ -30,9 +30,9 @@ Before production, run:
 
 ## Manage Users (Supabase-only via Edge Function)
 
-Manager/Supervisor agent creation is handled by Supabase Edge Function:
+Manager user administration is handled by Supabase Edge Function:
 
-- `supabase/functions/create-agent/index.ts`
+- `supabase/functions/super-endpoint/index.ts`
 
 Deploy it once, then the app can create agent accounts without any separate backend host.
 
@@ -41,7 +41,7 @@ Using Supabase CLI:
 ```powershell
 supabase login
 supabase link --project-ref bchztlpgksdaiyxlxppb
-supabase functions deploy create-agent --no-verify-jwt=false
+supabase functions deploy super-endpoint --no-verify-jwt=false
 ```
 
 Important:

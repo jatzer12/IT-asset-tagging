@@ -134,7 +134,7 @@
   }
 
   function canManageUsers(role) {
-    return role === "MANAGER" || role === "SUPERVISOR";
+    return role === "MANAGER";
   }
 
   function canMassDelete(role) {
@@ -228,20 +228,79 @@
     return { ok: true };
   }
 
+  async function changeAccountRole(_currentSession, _targetUserId, _role) {
+    const currentSession = _currentSession || null;
+    if (!currentSession || !canManageUsers(currentSession.role)) {
+      return { ok: false, message: "Permission denied." };
+    }
+    const targetUserId = String(_targetUserId || "").trim();
+    const role = String(_role || "").trim().toUpperCase();
+    if (!targetUserId || !role) {
+      return { ok: false, message: "Target account and role are required." };
+    }
+    if (!["AGENT", "SUPERVISOR", "MANAGER"].includes(role)) {
+      return { ok: false, message: "Role must be AGENT, SUPERVISOR, or MANAGER." };
+    }
+
+    const client = getSupabaseClient();
+    if (!client) return { ok: false, message: "Supabase is not configured." };
+    const cfg = window.SUPABASE_CONFIG || {};
+    const fnName = String(cfg.adminFunctionName || DEFAULT_EDGE_FUNCTION_NAME).trim() || DEFAULT_EDGE_FUNCTION_NAME;
+    const invokeResult = await client.functions.invoke(fnName, {
+      body: {
+        action: "change_user_role",
+        targetUserId: targetUserId,
+        role: role
+      }
+    });
+    if (invokeResult.error) {
+      const message = await readInvokeErrorMessage(invokeResult.error, "Unable to change user role.");
+      return { ok: false, message: message };
+    }
+    const body = invokeResult.data || {};
+    if (!body.ok) return { ok: false, message: body.message || "Unable to change user role." };
+    return { ok: true, role: body.role ? String(body.role) : role };
+  }
+
   async function listAccounts() {
     const client = getSupabaseClient();
     if (!client) return [];
-    const result = await client
+    let result = await client
       .from("profiles")
-      .select("id, username, role, created_at")
+      .select("id, username, role, created_at, created_by")
       .order("username", { ascending: true });
+    if (result.error && /created_by/i.test(String(result.error.message || ""))) {
+      // Backward compatible fallback for older schemas that do not have created_by yet.
+      result = await client
+        .from("profiles")
+        .select("id, username, role, created_at")
+        .order("username", { ascending: true });
+    }
     if (result.error || !Array.isArray(result.data)) return [];
+
+    const createdByIds = Array.from(new Set(result.data
+      .map(function (item) { return String(item.created_by || "").trim(); })
+      .filter(Boolean)));
+    let usernameById = {};
+    if (createdByIds.length) {
+      const lookup = await client.rpc("lookup_usernames", { user_ids: createdByIds });
+      if (!lookup.error && Array.isArray(lookup.data)) {
+        usernameById = lookup.data.reduce(function (acc, row) {
+          const id = String(row && row.id ? row.id : "").trim();
+          if (!id) return acc;
+          acc[id] = String(row && row.username ? row.username : id);
+          return acc;
+        }, {});
+      }
+    }
+
     return result.data.map(function (item) {
+      const createdById = String(item.created_by || "").trim();
       return {
         userId: item.id || "",
         username: item.username || "-",
         role: item.role || "-",
-        createdBy: "-",
+        createdBy: createdById ? (usernameById[createdById] || createdById) : "-",
         createdAt: item.created_at || ""
       };
     });
@@ -259,6 +318,7 @@
     canMassDelete: canMassDelete,
     createAgentAccount: createAgentAccount,
     resetAccountPassword: resetAccountPassword,
+    changeAccountRole: changeAccountRole,
     listAccounts: listAccounts
   };
 })();

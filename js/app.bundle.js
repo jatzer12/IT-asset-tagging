@@ -685,6 +685,10 @@
     return currentUser.role === "MANAGER" || currentUser.role === "SUPERVISOR";
   }
 
+  function isManagerRole() {
+    return currentUser.role === "MANAGER";
+  }
+
   function isAgentRole() {
     return currentUser.role === "AGENT";
   }
@@ -703,7 +707,7 @@
       currentUserBadge.textContent = currentUser.username + " (" + currentUser.role + ")";
     }
     const canManage = isManagerOrSupervisor();
-    if (manageUsersBtn) manageUsersBtn.hidden = !canManage;
+    if (manageUsersBtn) manageUsersBtn.hidden = !isManagerRole();
     if (massDeleteLink) massDeleteLink.hidden = !canManage;
     if (manageDepartmentsBtn) manageDepartmentsBtn.hidden = !canManage;
     if (importExportBtn) importExportBtn.hidden = !canManage;
@@ -722,20 +726,34 @@
       const createdAt = item.createdAt ? new Date(item.createdAt).toLocaleString() : "-";
       const userId = escapeHtml(item.userId || "");
       const username = escapeHtml(item.username || "-");
-      const role = escapeHtml(item.role || "-");
+      const roleRaw = String(item.role || "").toUpperCase();
+      const selectedAgent = roleRaw === "AGENT" ? " selected" : "";
+      const selectedSupervisor = roleRaw === "SUPERVISOR" ? " selected" : "";
+      const selectedManager = roleRaw === "MANAGER" ? " selected" : "";
       const createdBy = escapeHtml(item.createdBy || "-");
       return `<tr>
         <td>${username}</td>
-        <td>${role}</td>
+        <td>
+          <select class="user-admin-role" data-role-user-id="${userId}" data-role-username="${username}">
+            <option value="AGENT"${selectedAgent}>Agent</option>
+            <option value="SUPERVISOR"${selectedSupervisor}>Supervisor</option>
+            <option value="MANAGER"${selectedManager}>Manager</option>
+          </select>
+        </td>
         <td>${createdBy}</td>
         <td>${createdAt}</td>
-        <td><button type="button" class="ghost" data-reset-user-id="${userId}" data-reset-username="${username}">Reset Password</button></td>
+        <td>
+          <div class="user-admin-actions">
+            <button type="button" class="ghost user-admin-btn" data-reset-user-id="${userId}" data-reset-username="${username}">Reset</button>
+            <button type="button" class="primary user-admin-btn" data-change-role-user-id="${userId}" data-change-role-username="${username}">Save Role</button>
+          </div>
+        </td>
       </tr>`;
     }).join("");
   }
 
   function openUserAdminModal() {
-    if (!isManagerOrSupervisor()) return;
+    if (!isManagerRole()) return;
     if (!userAdminModal || !userAdminOverlay) return;
     renderUserAdminTable();
     if (newAgentUsername) newAgentUsername.value = "";
@@ -1792,8 +1810,19 @@
       "Disposed": records.filter(function (asset) { return asset.primaryStatus === "SURPLUSED"; }).length
     };
 
-    drawPieChart(statusPieChart, statusData, ["#0f766e", "#2563eb", "#991b1b"], statusPieLegend);
-    drawPieChart(bucketPieChart, buckets, ["#b91c1c", "#0f766e", "#2563eb", "#92400e", "#6b7280"], bucketPieLegend);
+    drawPieChart(statusPieChart, statusData, {
+      "Inventory": "#111827",
+      "In-Use": "#2563eb",
+      "Deferred": "#d97706",
+      "Disposed": "#dc2626"
+    }, statusPieLegend);
+    drawPieChart(bucketPieChart, buckets, {
+      "Past Due": "#b91c1c",
+      "This Year": "#0f766e",
+      "Next Year": "#2563eb",
+      "Future (2+ Years)": "#92400e",
+      "No Lifecycle Year": "#6b7280"
+    }, bucketPieLegend);
   }
 
   function drawPieChart(canvas, dataMap, palette, legendEl) {
@@ -1822,6 +1851,17 @@
     const cx = w / 2;
     const cy = h / 2;
     const r = Math.min(w, h) * 0.36;
+    const separatorColor = "#ffffff";
+
+    function colorForLabel(label, index) {
+      if (palette && typeof palette === "object" && !Array.isArray(palette) && palette[label]) {
+        return String(palette[label]);
+      }
+      if (Array.isArray(palette) && palette.length) {
+        return palette[index % palette.length];
+      }
+      return "#6b7280";
+    }
     const fromValues = labels.map(function (label) { return Math.max(0, Number(previousData[label]) || 0); });
     const toValues = labels.map(function (label) { return Math.max(0, Number(nextData[label]) || 0); });
 
@@ -1842,29 +1882,49 @@
 
       let angle = -Math.PI / 2;
       entries.forEach(function (entry, index) {
+        const label = entry[0];
         const value = entry[1];
         const slice = (value / total) * Math.PI * 2;
-        const color = palette[index % palette.length];
+        const pct = value / total;
+        const color = colorForLabel(label, index);
+        const mid = angle + (slice / 2);
+        const explode = pct < 0.06 ? 8 : 0;
+        const ox = Math.cos(mid) * explode;
+        const oy = Math.sin(mid) * explode;
 
         ctx.beginPath();
-        ctx.moveTo(cx, cy);
-        ctx.arc(cx, cy, r, angle, angle + slice);
+        ctx.moveTo(cx + ox, cy + oy);
+        ctx.arc(cx + ox, cy + oy, r, angle, angle + slice);
         ctx.closePath();
         ctx.fillStyle = color;
         ctx.fill();
+        ctx.lineWidth = pct < 0.06 ? 3 : 2;
+        ctx.strokeStyle = separatorColor;
+        ctx.stroke();
+        if (pct < 0.06) {
+          ctx.lineWidth = 1.5;
+          ctx.strokeStyle = "#111827";
+          ctx.stroke();
+        }
         angle += slice;
       });
 
       ctx.beginPath();
       ctx.arc(cx, cy, r * 0.56, 0, Math.PI * 2);
-      ctx.fillStyle = "#fff";
+      ctx.fillStyle = "#ffffff";
       ctx.fill();
+      ctx.lineWidth = 1.5;
+      ctx.strokeStyle = "#d1d5db";
+      ctx.stroke();
 
       ctx.fillStyle = "#20201d";
       ctx.font = "600 18px 'IBM Plex Mono'";
       ctx.textAlign = "center";
       ctx.textBaseline = "middle";
-      ctx.fillText(String(Math.round(total)), cx, cy);
+      ctx.fillText(String(Math.round(total)), cx, cy - 2);
+      ctx.fillStyle = "#6f6f67";
+      ctx.font = "600 11px 'Space Grotesk'";
+      ctx.fillText("TOTAL", cx, cy + 16);
     }
 
     if (canvas.__pieFrame) {
@@ -1891,7 +1951,7 @@
           const value = Number(entry[1]);
           const total = Object.values(nextData).reduce(function (sum, count) { return sum + Number(count); }, 0) || 1;
           const pct = Math.round((value / total) * 100);
-          const color = palette[index % palette.length];
+          const color = colorForLabel(label, index);
           return `<div class="chart-legend-item"><span class="chart-swatch" style="background:${color}"></span><span>${label}: ${value} (${pct}%)</span></div>`;
         }).join("");
       }
@@ -2390,16 +2450,44 @@
     });
   }
   if (userAdminRows) {
-    userAdminRows.addEventListener("click", function (event) {
+    userAdminRows.addEventListener("click", async function (event) {
       const target = event.target;
       if (!(target instanceof HTMLElement)) return;
       const userId = String(target.getAttribute("data-reset-user-id") || "").trim();
       const username = String(target.getAttribute("data-reset-username") || "").trim();
-      if (!userId) return;
-      if (resetTargetUserId) resetTargetUserId.value = userId;
-      if (resetTargetLabel) resetTargetLabel.value = username || userId;
-      if (resetAccountPasswordBtn) resetAccountPasswordBtn.disabled = false;
-      if (resetAccountPassword) resetAccountPassword.focus();
+      if (userId) {
+        if (resetTargetUserId) resetTargetUserId.value = userId;
+        if (resetTargetLabel) resetTargetLabel.value = username || userId;
+        if (resetAccountPasswordBtn) resetAccountPasswordBtn.disabled = false;
+        if (resetAccountPassword) resetAccountPassword.focus();
+        return;
+      }
+
+      const changeRoleUserId = String(target.getAttribute("data-change-role-user-id") || "").trim();
+      const changeRoleUsername = String(target.getAttribute("data-change-role-username") || "").trim();
+      if (!changeRoleUserId) return;
+      if (!auth || typeof auth.changeAccountRole !== "function") return;
+      const roleSelect = userAdminRows.querySelector(`select[data-role-user-id="${changeRoleUserId}"]`);
+      const selectedRole = roleSelect ? String(roleSelect.value || "").trim().toUpperCase() : "";
+      if (!selectedRole) {
+        showAppNotice("Update Role", "Select a role first.");
+        return;
+      }
+      showAppConfirm(
+        "Update Role",
+        "Change role for " + (changeRoleUsername || changeRoleUserId) + " to " + selectedRole + "?",
+        async function () {
+          const result = await auth.changeAccountRole(currentUser, changeRoleUserId, selectedRole);
+          if (!result.ok) {
+            showAppNotice("Update Role", result.message || "Unable to update user role.");
+            return;
+          }
+          await renderUserAdminTable();
+          showAppNotice("Update Role", "User role updated to " + selectedRole + ".");
+        },
+        "Update Role",
+        "Cancel"
+      );
     });
   }
   if (resetAccountPasswordBtn) {

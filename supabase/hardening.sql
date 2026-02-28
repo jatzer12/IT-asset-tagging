@@ -73,6 +73,11 @@ create index if not exists idx_comments_asset_id on public.asset_comments(asset_
 create index if not exists idx_audit_asset_id on public.asset_audit(asset_id);
 create index if not exists idx_audit_actor_user on public.asset_audit(actor_user_id);
 
+-- Track who created each profile in User Management.
+alter table if exists public.profiles
+  add column if not exists created_by uuid;
+create index if not exists idx_profiles_created_by on public.profiles(created_by);
+
 -- Enforce case-insensitive, trimmed uniqueness for asset tags at DB level.
 do $$
 begin
