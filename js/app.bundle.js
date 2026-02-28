@@ -999,7 +999,9 @@
         actor_username: currentUser.username,
         details: details || {}
       });
-    } catch (_error) {}
+    } catch (_error) {
+      console.warn("Audit log write failed", _error);
+    }
   }
 
   async function addAssetActivityEntry(assetId, text) {
@@ -1010,7 +1012,9 @@
         comment_text: String(text).trim().slice(0, 1000),
         created_by: currentUserId
       });
-    } catch (_error) {}
+    } catch (_error) {
+      console.warn("Asset activity write failed", _error);
+    }
   }
 
   async function archiveAssetBeforeDelete(asset, actionLabel) {
@@ -1094,22 +1098,23 @@
       "Approve Delete Request",
       "Delete asset " + (asset.assetTag || "-") + " now?\nThis action cannot be undone.",
       async function () {
-        const archived = await archiveAssetBeforeDelete(asset, "DELETE_APPROVE");
-        if (!archived) return;
-        addAuditLog("DELETE_APPROVE", { assetTag: asset.assetTag }, null);
-        supabaseClient
-          .from("assets")
-          .delete()
-          .eq("id", Number(asset.id))
-          .then(async function (result) {
-            if (result.error) {
-              showAppNotice("Delete Error", result.error.message || "Unable to delete asset.");
-              return;
-            }
-            await refreshAssetsFromSupabase();
-            await renderDeleteRequestsTable();
-            await renderTrashBinTable();
-          });
+        const rpcResult = await supabaseClient.rpc("archive_and_delete_asset", {
+          p_asset_id: Number(asset.id),
+          p_action: "DELETE_APPROVE"
+        });
+        if (rpcResult.error || !rpcResult.data || rpcResult.data.ok !== true) {
+          const message = rpcResult.error
+            ? ((rpcResult.error.code === "PGRST202")
+              ? "Required database RPC is missing. Run the latest supabase/hardening.sql."
+              : (rpcResult.error.message || "Unable to approve delete request."))
+            : (rpcResult.data && rpcResult.data.message ? rpcResult.data.message : "Unable to approve delete request.");
+          showAppNotice("Delete Error", message);
+          return;
+        }
+        await addAuditLog("DELETE_APPROVE", { assetTag: asset.assetTag }, null);
+        await refreshAssetsFromSupabase();
+        await renderDeleteRequestsTable();
+        await renderTrashBinTable();
       },
       "Approve Delete",
       "Cancel"
@@ -1232,58 +1237,22 @@
 
   async function restoreDeletedAssetByArchiveId(archiveId) {
     if (!isManagerOrSupervisor() || !supabaseClient) return;
-    const fetchResult = await supabaseClient
-      .from("deleted_assets")
-      .select("*")
-      .eq("id", Number(archiveId))
-      .single();
-    if (fetchResult.error || !fetchResult.data) {
-      showAppNotice("Restore Error", fetchResult.error ? (fetchResult.error.message || "Unable to load archive record.") : "Archive record not found.");
+    const rpcResult = await supabaseClient.rpc("restore_deleted_asset", {
+      p_deleted_asset_id: Number(archiveId)
+    });
+    if (rpcResult.error || !rpcResult.data || rpcResult.data.ok !== true) {
+      const message = rpcResult.error
+        ? ((rpcResult.error.code === "PGRST202")
+          ? "Required database RPC is missing. Run the latest supabase/hardening.sql."
+          : (rpcResult.error.message || "Unable to restore asset."))
+        : (rpcResult.data && rpcResult.data.message ? rpcResult.data.message : "Unable to restore asset.");
+      showAppNotice("Restore Error", message);
       return;
     }
-    const row = fetchResult.data;
-    const duplicate = await supabaseClient
-      .from("assets")
-      .select("id")
-      .eq("asset_tag", row.asset_tag)
-      .limit(1);
-    if (!duplicate.error && Array.isArray(duplicate.data) && duplicate.data.length) {
-      showAppNotice("Restore Blocked", "An active asset with the same Asset Tag already exists.");
-      return;
-    }
-    const insertPayload = {
-      asset_tag: row.asset_tag || "",
-      asset_name: row.asset_name || "",
-      serial_number: row.serial_number || null,
-      device_type: row.device_type || "",
-      model: row.model || null,
-      assigned_user: row.assigned_user || null,
-      location: row.location || null,
-      room_number: row.room_number || null,
-      department: row.department || null,
-      purchase_date: row.purchase_date || null,
-      lifecycle_year: row.lifecycle_year || null,
-      asset_value: row.asset_value || null,
-      status: row.status || PRIMARY_STATUS.INVENTORY,
-      notes: row.notes || null,
-      pending_delete_by: null,
-      pending_delete_at: null,
-      updated_by: currentUserId,
-      created_by: currentUserId
-    };
-    const insertResult = await supabaseClient
-      .from("assets")
-      .insert(insertPayload)
-      .select("id")
-      .single();
-    if (insertResult.error || !insertResult.data) {
-      showAppNotice("Restore Error", insertResult.error ? (insertResult.error.message || "Unable to restore asset.") : "Unable to restore asset.");
-      return;
-    }
-    const restoredId = Number(insertResult.data.id);
-    await addAssetActivityEntry(restoredId, "Asset restored from Trash Bin.");
-    await addAuditLog("RESTORE", { assetTag: row.asset_tag }, restoredId);
-    await supabaseClient.from("deleted_assets").delete().eq("id", Number(archiveId));
+    const restoredId = Number(rpcResult.data.asset_id);
+    const restoredTag = String(rpcResult.data.asset_tag || "");
+    if (restoredId) await addAssetActivityEntry(restoredId, "Asset restored from Trash Bin.");
+    await addAuditLog("RESTORE", { assetTag: restoredTag }, restoredId || null);
     await refreshAssetsFromSupabase();
     await renderTrashBinTable();
   }
@@ -1296,12 +1265,16 @@
       "Delete Permanently",
       "Permanently remove " + (tag || "this item") + " from Trash Bin?\nThis cannot be undone.",
       async function () {
-        const result = await supabaseClient
-          .from("deleted_assets")
-          .delete()
-          .eq("id", Number(archiveId));
-        if (result.error) {
-          showAppNotice("Purge Error", result.error.message || "Unable to permanently delete archive record.");
+        const rpcResult = await supabaseClient.rpc("purge_deleted_asset", {
+          p_deleted_asset_id: Number(archiveId)
+        });
+        if (rpcResult.error || !rpcResult.data || rpcResult.data.ok !== true) {
+          const message = rpcResult.error
+            ? ((rpcResult.error.code === "PGRST202")
+              ? "Required database RPC is missing. Run the latest supabase/hardening.sql."
+              : (rpcResult.error.message || "Unable to permanently delete archive record."))
+            : (rpcResult.data && rpcResult.data.message ? rpcResult.data.message : "Unable to permanently delete archive record.");
+          showAppNotice("Purge Error", message);
           return;
         }
         await addAuditLog("PURGE", { assetTag: tag }, null);
@@ -1685,26 +1658,27 @@
       "Delete asset " + tag + "?\nThis action cannot be undone." + requestNote,
       async function () {
         const actionLabel = asset.pendingDelete ? "DELETE_APPROVE" : "DELETE";
-        const archived = await archiveAssetBeforeDelete(asset, actionLabel);
-        if (!archived) return;
-        addAuditLog(actionLabel, { assetTag: tag }, null);
-        if (supabaseClient && asset.id) {
-          supabaseClient
-            .from("assets")
-            .delete()
-            .eq("id", Number(asset.id))
-            .then(async function (result) {
-              if (result.error) {
-                showAppNotice("Delete Error", result.error.message || "Unable to delete asset.");
-                return;
-              }
-              if (editingTag === tag) resetForm();
-              closeAssetDetails();
-              await refreshAssetsFromSupabase();
-            });
+        if (!(supabaseClient && asset.id)) {
+          showAppNotice("Cloud Required", "Deleting assets requires Supabase connection.");
           return;
         }
-        showAppNotice("Cloud Required", "Deleting assets requires Supabase connection.");
+        const rpcResult = await supabaseClient.rpc("archive_and_delete_asset", {
+          p_asset_id: Number(asset.id),
+          p_action: actionLabel
+        });
+        if (rpcResult.error || !rpcResult.data || rpcResult.data.ok !== true) {
+          const message = rpcResult.error
+            ? ((rpcResult.error.code === "PGRST202")
+              ? "Required database RPC is missing. Run the latest supabase/hardening.sql."
+              : (rpcResult.error.message || "Unable to delete asset."))
+            : (rpcResult.data && rpcResult.data.message ? rpcResult.data.message : "Unable to delete asset.");
+          showAppNotice("Delete Error", message);
+          return;
+        }
+        await addAuditLog(actionLabel, { assetTag: tag }, null);
+        if (editingTag === tag) resetForm();
+        closeAssetDetails();
+        await refreshAssetsFromSupabase();
       },
       asset.pendingDelete ? "Approve Delete" : "Delete",
       "Cancel"
