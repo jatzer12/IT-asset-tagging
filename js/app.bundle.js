@@ -90,8 +90,9 @@
     if (!value || typeof value !== "object") return null;
     const requestedBy = String(value.requestedBy || "").trim();
     const requestedAt = String(value.requestedAt || "").trim();
+    const requestedById = String(value.requestedById || "").trim();
     if (!requestedBy || !requestedAt) return null;
-    return { requestedBy: requestedBy, requestedAt: requestedAt };
+    return { requestedBy: requestedBy, requestedAt: requestedAt, requestedById: requestedById };
   }
 
   function normalizeAssetRecord(record) {
@@ -318,6 +319,8 @@
   const logoutBtn = document.getElementById("logoutBtn");
   const manageUsersBtn = document.getElementById("manageUsersBtn");
   const massDeleteLink = document.getElementById("massDeleteLink");
+  const openDeleteRequestsBtn = document.getElementById("openDeleteRequestsBtn");
+  const openTrashBinBtn = document.getElementById("openTrashBinBtn");
   const closeAssetPanelBtn = document.getElementById("closeAssetPanelBtn");
   const panelOverlay = document.getElementById("panelOverlay");
   const assetDetailsModal = document.getElementById("assetDetailsModal");
@@ -413,6 +416,14 @@
   const resetAccountPassword = document.getElementById("resetAccountPassword");
   const resetAccountPasswordBtn = document.getElementById("resetAccountPasswordBtn");
   const userAdminRows = document.getElementById("userAdminRows");
+  const deleteRequestsModal = document.getElementById("deleteRequestsModal");
+  const deleteRequestsOverlay = document.getElementById("deleteRequestsOverlay");
+  const closeDeleteRequestsBtn = document.getElementById("closeDeleteRequestsBtn");
+  const deleteRequestsRows = document.getElementById("deleteRequestsRows");
+  const trashBinModal = document.getElementById("trashBinModal");
+  const trashBinOverlay = document.getElementById("trashBinOverlay");
+  const closeTrashBinBtn = document.getElementById("closeTrashBinBtn");
+  const trashBinRows = document.getElementById("trashBinRows");
   const fileOpsDialog = document.getElementById("fileOpsDialog");
   const fileOpsOverlay = document.getElementById("fileOpsOverlay");
   const fileOpsImportBtn = document.getElementById("fileOpsImportBtn");
@@ -452,6 +463,11 @@
   let departmentList = loadDepartmentList();
   let pendingDepartmentRemoval = null;
   let departmentComboOpen = false;
+  let trashArchiveRows = [];
+
+  function canonicalAssetTag(value) {
+    return String(value || "").trim().toLowerCase();
+  }
 
   function rebuildAssetIndexes() {
     assetIndexByTag = new Map();
@@ -464,7 +480,8 @@
       const deviceTypeLower = String(asset.deviceType || "").toLowerCase();
       const departmentLower = String(asset.department || "").trim().toLowerCase();
       const lifecycleYear = String(asset.lifecycleYear || "").trim();
-      if (assetTag) assetIndexByTag.set(assetTag, index);
+      const canonicalTag = canonicalAssetTag(assetTag);
+      if (canonicalTag && !assetIndexByTag.has(canonicalTag)) assetIndexByTag.set(canonicalTag, index);
       return {
         index: index,
         assetTagLower: assetTagLower,
@@ -480,7 +497,7 @@
 
   function getAssetIndexByTag(tag) {
     if (!tag) return -1;
-    const index = assetIndexByTag.get(tag);
+    const index = assetIndexByTag.get(canonicalAssetTag(tag));
     return Number.isInteger(index) ? index : -1;
   }
 
@@ -542,9 +559,11 @@
     const dashboardVisible = dashboardOverlay && !dashboardOverlay.hidden;
     const departmentVisible = departmentAdminOverlay && !departmentAdminOverlay.hidden;
     const usersVisible = userAdminOverlay && !userAdminOverlay.hidden;
+    const deleteRequestsVisible = deleteRequestsOverlay && !deleteRequestsOverlay.hidden;
+    const trashVisible = trashBinOverlay && !trashBinOverlay.hidden;
     const dialogVisible = appDialogOverlay && !appDialogOverlay.hidden;
     const fileOpsVisible = fileOpsOverlay && !fileOpsOverlay.hidden;
-    document.body.classList.toggle("no-scroll", panelVisible || detailsVisible || dashboardVisible || departmentVisible || usersVisible || dialogVisible || fileOpsVisible);
+    document.body.classList.toggle("no-scroll", panelVisible || detailsVisible || dashboardVisible || departmentVisible || usersVisible || deleteRequestsVisible || trashVisible || dialogVisible || fileOpsVisible);
   }
 
   function closeAppDialog() {
@@ -688,6 +707,8 @@
     if (massDeleteLink) massDeleteLink.hidden = !canManage;
     if (manageDepartmentsBtn) manageDepartmentsBtn.hidden = !canManage;
     if (importExportBtn) importExportBtn.hidden = !canManage;
+    if (openDeleteRequestsBtn) openDeleteRequestsBtn.hidden = !canManage;
+    if (openTrashBinBtn) openTrashBinBtn.hidden = !canManage;
   }
 
   async function renderUserAdminTable() {
@@ -941,7 +962,8 @@
       pendingDelete: row.pending_delete_at
         ? {
           requestedBy: row.pending_delete_by ? (usernameByUserId.get(String(row.pending_delete_by)) || String(row.pending_delete_by)) : "unknown",
-          requestedAt: String(row.pending_delete_at)
+          requestedAt: String(row.pending_delete_at),
+          requestedById: row.pending_delete_by ? String(row.pending_delete_by) : ""
         }
         : null
     });
@@ -978,6 +1000,334 @@
         details: details || {}
       });
     } catch (_error) {}
+  }
+
+  async function addAssetActivityEntry(assetId, text) {
+    if (!supabaseClient || !assetId || !text) return;
+    try {
+      await supabaseClient.from("asset_comments").insert({
+        asset_id: Number(assetId),
+        comment_text: String(text).trim().slice(0, 1000),
+        created_by: currentUserId
+      });
+    } catch (_error) {}
+  }
+
+  async function archiveAssetBeforeDelete(asset, actionLabel) {
+    if (!supabaseClient || !asset || !asset.id) return false;
+    const requestedById = asset.pendingDelete && asset.pendingDelete.requestedById ? String(asset.pendingDelete.requestedById) : null;
+    const requestedBy = asset.pendingDelete && asset.pendingDelete.requestedBy ? String(asset.pendingDelete.requestedBy) : null;
+    const requestedAt = asset.pendingDelete && asset.pendingDelete.requestedAt ? String(asset.pendingDelete.requestedAt) : null;
+    const archivePayload = {
+      original_asset_id: Number(asset.id),
+      asset_tag: asset.assetTag || "",
+      asset_name: asset.assetName || null,
+      serial_number: asset.serialNumber || null,
+      device_type: asset.deviceType || null,
+      model: asset.model || null,
+      assigned_user: asset.assignedTo || null,
+      location: asset.location || null,
+      room_number: asset.roomNumber || null,
+      department: asset.department || null,
+      purchase_date: asset.purchaseDate || null,
+      lifecycle_year: asset.lifecycleYear ? Number(asset.lifecycleYear) : null,
+      asset_value: asset.assetValue === "" || asset.assetValue === null || asset.assetValue === undefined ? null : Number(asset.assetValue),
+      status: asset.primaryStatus || null,
+      notes: asset.notes || null,
+      requested_by_user_id: requestedById,
+      requested_by_username: requestedBy,
+      requested_at: requestedAt,
+      deleted_by_user_id: currentUserId,
+      deleted_by_username: currentUser.username || "unknown",
+      delete_action: actionLabel || "DELETE",
+      snapshot: asset
+    };
+    const archiveResult = await supabaseClient
+      .from("deleted_assets")
+      .insert(archivePayload);
+    if (archiveResult.error) {
+      showAppNotice("Trash Bin Error", archiveResult.error.message || "Unable to archive asset before delete.");
+      return false;
+    }
+    return true;
+  }
+
+  function valueForCompare(value) {
+    return String(value === null || value === undefined ? "" : value).trim();
+  }
+
+  function collectAssetChangeSummary(before, after) {
+    if (!before || !after) return [];
+    const fields = [
+      { key: "assetTag", label: "Asset Tag" },
+      { key: "assetName", label: "Asset Name" },
+      { key: "serialNumber", label: "Serial Number" },
+      { key: "deviceType", label: "Device Type" },
+      { key: "model", label: "Model" },
+      { key: "assignedTo", label: "Assigned User" },
+      { key: "location", label: "Location" },
+      { key: "roomNumber", label: "Room #" },
+      { key: "department", label: "Department" },
+      { key: "purchaseDate", label: "Purchase Date" },
+      { key: "lifecycleYear", label: "Lifecycle Year" },
+      { key: "assetValue", label: "Asset Value" },
+      { key: "primaryStatus", label: "Status" },
+      { key: "notes", label: "Notes" }
+    ];
+    const changes = [];
+    fields.forEach(function (field) {
+      const prev = valueForCompare(before[field.key]);
+      const next = valueForCompare(after[field.key]);
+      if (prev === next) return;
+      const prevLabel = prev || "-";
+      const nextLabel = next || "-";
+      changes.push(field.label + ": " + prevLabel + " -> " + nextLabel);
+    });
+    return changes;
+  }
+
+  async function approveDeleteRequestByAssetId(assetId) {
+    if (!isManagerOrSupervisor()) return;
+    const asset = assets.find(function (item) { return Number(item.id) === Number(assetId); });
+    if (!asset || !asset.id) return;
+    showAppConfirm(
+      "Approve Delete Request",
+      "Delete asset " + (asset.assetTag || "-") + " now?\nThis action cannot be undone.",
+      async function () {
+        const archived = await archiveAssetBeforeDelete(asset, "DELETE_APPROVE");
+        if (!archived) return;
+        addAuditLog("DELETE_APPROVE", { assetTag: asset.assetTag }, null);
+        supabaseClient
+          .from("assets")
+          .delete()
+          .eq("id", Number(asset.id))
+          .then(async function (result) {
+            if (result.error) {
+              showAppNotice("Delete Error", result.error.message || "Unable to delete asset.");
+              return;
+            }
+            await refreshAssetsFromSupabase();
+            await renderDeleteRequestsTable();
+            await renderTrashBinTable();
+          });
+      },
+      "Approve Delete",
+      "Cancel"
+    );
+  }
+
+  async function denyDeleteRequestByAssetId(assetId) {
+    if (!isManagerOrSupervisor()) return;
+    const asset = assets.find(function (item) { return Number(item.id) === Number(assetId); });
+    if (!asset || !asset.id || !asset.pendingDelete) return;
+    showAppConfirm(
+      "Deny Delete Request",
+      "Deny delete request for asset " + (asset.assetTag || "-") + "?",
+      function () {
+        supabaseClient
+          .from("assets")
+          .update({
+            pending_delete_by: null,
+            pending_delete_at: null,
+            updated_by: currentUserId
+          })
+          .eq("id", Number(asset.id))
+          .then(async function (result) {
+            if (result.error) {
+              showAppNotice("Deny Request Error", result.error.message || "Unable to deny delete request.");
+              return;
+            }
+            await addAssetActivityEntry(Number(asset.id), "Delete request denied.");
+            await addAuditLog("DELETE_DENY", { assetTag: asset.assetTag }, Number(asset.id));
+            await refreshAssetsFromSupabase();
+            await renderDeleteRequestsTable();
+          });
+      },
+      "Deny Request",
+      "Cancel"
+    );
+  }
+
+  async function renderDeleteRequestsTable() {
+    if (!deleteRequestsRows) return;
+    const pending = assets
+      .filter(function (item) { return !!item.pendingDelete; })
+      .sort(function (a, b) {
+        return new Date((b.pendingDelete && b.pendingDelete.requestedAt) || "").getTime()
+          - new Date((a.pendingDelete && a.pendingDelete.requestedAt) || "").getTime();
+      });
+    if (!pending.length) {
+      deleteRequestsRows.innerHTML = '<tr><td colspan="5">No pending delete requests.</td></tr>';
+      return;
+    }
+    deleteRequestsRows.innerHTML = pending.map(function (item) {
+      const reqBy = item.pendingDelete ? item.pendingDelete.requestedBy : "-";
+      const reqAt = item.pendingDelete ? formatCommentTimestamp(item.pendingDelete.requestedAt) : "-";
+      return '<tr>'
+        + '<td class="mono">' + escapeHtml(item.assetTag || "-") + '</td>'
+        + '<td>' + escapeHtml(item.assetName || "-") + '</td>'
+        + '<td>' + escapeHtml(reqBy || "-") + '</td>'
+        + '<td>' + escapeHtml(reqAt || "-") + '</td>'
+        + '<td>'
+        + '<button type="button" class="primary" data-approve-delete-id="' + String(item.id) + '">Approve</button> '
+        + '<button type="button" class="danger" data-deny-delete-id="' + String(item.id) + '">Deny</button>'
+        + '</td>'
+        + '</tr>';
+    }).join("");
+  }
+
+  function openDeleteRequestsModal() {
+    if (!isManagerOrSupervisor()) return;
+    if (!deleteRequestsModal || !deleteRequestsOverlay) return;
+    renderDeleteRequestsTable();
+    deleteRequestsModal.hidden = false;
+    deleteRequestsModal.setAttribute("aria-hidden", "false");
+    deleteRequestsOverlay.hidden = false;
+    syncBodyScrollLock();
+  }
+
+  function closeDeleteRequestsModal() {
+    if (!deleteRequestsModal || !deleteRequestsOverlay) return;
+    deleteRequestsModal.hidden = true;
+    deleteRequestsModal.setAttribute("aria-hidden", "true");
+    deleteRequestsOverlay.hidden = true;
+    syncBodyScrollLock();
+  }
+
+  async function renderTrashBinTable() {
+    if (!trashBinRows || !supabaseClient) return;
+    trashBinRows.innerHTML = '<tr><td colspan="6">Loading...</td></tr>';
+    const result = await supabaseClient
+      .from("deleted_assets")
+      .select("id, asset_tag, deleted_at, deleted_by_username, requested_by_username, requested_at, delete_action")
+      .order("deleted_at", { ascending: false });
+    if (result.error) {
+      trashBinRows.innerHTML = '<tr><td colspan="6">Unable to load trash bin.</td></tr>';
+      return;
+    }
+    const rows = Array.isArray(result.data) ? result.data : [];
+    trashArchiveRows = rows.slice();
+    if (!rows.length) {
+      trashBinRows.innerHTML = '<tr><td colspan="6">No deleted assets found.</td></tr>';
+      return;
+    }
+    trashBinRows.innerHTML = rows.map(function (row) {
+      const actionLabel = String(row.delete_action || "").toUpperCase() === "DELETE_APPROVE" ? "Approved Delete" : "Direct Delete";
+      return '<tr>'
+        + '<td class="mono">' + escapeHtml(row.asset_tag || "-") + '</td>'
+        + '<td>' + escapeHtml(formatCommentTimestamp(row.deleted_at)) + '</td>'
+        + '<td>' + escapeHtml(row.deleted_by_username || "-") + '</td>'
+        + '<td>' + escapeHtml(row.requested_by_username || "-") + '</td>'
+        + '<td>' + escapeHtml(row.requested_at ? formatCommentTimestamp(row.requested_at) : "-") + '</td>'
+        + '<td>'
+        + escapeHtml(actionLabel)
+        + '<div style="margin-top:6px;display:flex;gap:6px;">'
+        + '<button type="button" class="primary" data-restore-trash-id="' + String(row.id) + '">Restore</button>'
+        + '<button type="button" class="danger" data-purge-trash-id="' + String(row.id) + '">Delete Permanently</button>'
+        + '</div>'
+        + '</td>'
+        + '</tr>';
+    }).join("");
+  }
+
+  async function restoreDeletedAssetByArchiveId(archiveId) {
+    if (!isManagerOrSupervisor() || !supabaseClient) return;
+    const fetchResult = await supabaseClient
+      .from("deleted_assets")
+      .select("*")
+      .eq("id", Number(archiveId))
+      .single();
+    if (fetchResult.error || !fetchResult.data) {
+      showAppNotice("Restore Error", fetchResult.error ? (fetchResult.error.message || "Unable to load archive record.") : "Archive record not found.");
+      return;
+    }
+    const row = fetchResult.data;
+    const duplicate = await supabaseClient
+      .from("assets")
+      .select("id")
+      .eq("asset_tag", row.asset_tag)
+      .limit(1);
+    if (!duplicate.error && Array.isArray(duplicate.data) && duplicate.data.length) {
+      showAppNotice("Restore Blocked", "An active asset with the same Asset Tag already exists.");
+      return;
+    }
+    const insertPayload = {
+      asset_tag: row.asset_tag || "",
+      asset_name: row.asset_name || "",
+      serial_number: row.serial_number || null,
+      device_type: row.device_type || "",
+      model: row.model || null,
+      assigned_user: row.assigned_user || null,
+      location: row.location || null,
+      room_number: row.room_number || null,
+      department: row.department || null,
+      purchase_date: row.purchase_date || null,
+      lifecycle_year: row.lifecycle_year || null,
+      asset_value: row.asset_value || null,
+      status: row.status || PRIMARY_STATUS.INVENTORY,
+      notes: row.notes || null,
+      pending_delete_by: null,
+      pending_delete_at: null,
+      updated_by: currentUserId,
+      created_by: currentUserId
+    };
+    const insertResult = await supabaseClient
+      .from("assets")
+      .insert(insertPayload)
+      .select("id")
+      .single();
+    if (insertResult.error || !insertResult.data) {
+      showAppNotice("Restore Error", insertResult.error ? (insertResult.error.message || "Unable to restore asset.") : "Unable to restore asset.");
+      return;
+    }
+    const restoredId = Number(insertResult.data.id);
+    await addAssetActivityEntry(restoredId, "Asset restored from Trash Bin.");
+    await addAuditLog("RESTORE", { assetTag: row.asset_tag }, restoredId);
+    await supabaseClient.from("deleted_assets").delete().eq("id", Number(archiveId));
+    await refreshAssetsFromSupabase();
+    await renderTrashBinTable();
+  }
+
+  async function purgeDeletedAssetByArchiveId(archiveId) {
+    if (!isManagerOrSupervisor() || !supabaseClient) return;
+    const archive = trashArchiveRows.find(function (row) { return Number(row.id) === Number(archiveId); });
+    const tag = archive && archive.asset_tag ? archive.asset_tag : "";
+    showAppConfirm(
+      "Delete Permanently",
+      "Permanently remove " + (tag || "this item") + " from Trash Bin?\nThis cannot be undone.",
+      async function () {
+        const result = await supabaseClient
+          .from("deleted_assets")
+          .delete()
+          .eq("id", Number(archiveId));
+        if (result.error) {
+          showAppNotice("Purge Error", result.error.message || "Unable to permanently delete archive record.");
+          return;
+        }
+        await addAuditLog("PURGE", { assetTag: tag }, null);
+        await renderTrashBinTable();
+      },
+      "Delete Permanently",
+      "Cancel"
+    );
+  }
+
+  function openTrashBinModal() {
+    if (!isManagerOrSupervisor()) return;
+    if (!trashBinModal || !trashBinOverlay) return;
+    renderTrashBinTable();
+    trashBinModal.hidden = false;
+    trashBinModal.setAttribute("aria-hidden", "false");
+    trashBinOverlay.hidden = false;
+    syncBodyScrollLock();
+  }
+
+  function closeTrashBinModal() {
+    if (!trashBinModal || !trashBinOverlay) return;
+    trashBinModal.hidden = true;
+    trashBinModal.setAttribute("aria-hidden", "true");
+    trashBinOverlay.hidden = true;
+    syncBodyScrollLock();
   }
 
   async function refreshAssetsFromSupabase() {
@@ -1210,8 +1560,9 @@
     }
     if (deleteFromDetailsBtn) {
       if (isAgentRole()) {
-        deleteFromDetailsBtn.textContent = asset.pendingDelete ? "Delete Requested" : "Request Delete";
-        deleteFromDetailsBtn.disabled = !!asset.pendingDelete;
+        const isOwnRequest = !!(asset.pendingDelete && asset.pendingDelete.requestedById && currentUserId && asset.pendingDelete.requestedById === String(currentUserId));
+        deleteFromDetailsBtn.textContent = asset.pendingDelete ? (isOwnRequest ? "Cancel Request" : "Delete Requested") : "Request Delete";
+        deleteFromDetailsBtn.disabled = !!asset.pendingDelete && !isOwnRequest;
       } else {
         deleteFromDetailsBtn.disabled = false;
         deleteFromDetailsBtn.textContent = asset.pendingDelete ? "Approve Delete" : "Delete";
@@ -1255,7 +1606,40 @@
 
     if (isAgentRole()) {
       if (asset.pendingDelete) {
-        showAppNotice("Delete Request Pending", "A delete request already exists for this asset.");
+        const canCancelOwnRequest = !!(asset.pendingDelete.requestedById && currentUserId && asset.pendingDelete.requestedById === String(currentUserId));
+        if (!canCancelOwnRequest) {
+          showAppNotice("Delete Request Pending", "A delete request already exists for this asset.");
+          return;
+        }
+        showAppConfirm(
+          "Cancel Delete Request",
+          "Cancel your delete request for asset " + tag + "?",
+          function () {
+            if (supabaseClient && asset.id) {
+              supabaseClient
+                .from("assets")
+                .update({
+                  pending_delete_by: null,
+                  pending_delete_at: null,
+                  updated_by: currentUserId
+                })
+                .eq("id", Number(asset.id))
+                .then(async function (result) {
+                  if (result.error) {
+                    showAppNotice("Cancel Request Error", result.error.message || "Unable to cancel delete request.");
+                    return;
+                  }
+                  await addAssetActivityEntry(Number(asset.id), "Delete request canceled.");
+                  await addAuditLog("DELETE_REQUEST_CANCEL", { assetTag: tag }, Number(asset.id));
+                  await refreshAssetsFromSupabase();
+                  const refreshedIndex = getAssetIndexByTag(tag);
+                  if (refreshedIndex >= 0) openAssetDetails(assets[refreshedIndex]);
+                });
+            }
+          },
+          "Cancel Request",
+          "Keep Request"
+        );
         return;
       }
       showAppConfirm(
@@ -1276,6 +1660,7 @@
                   showAppNotice("Delete Request Error", result.error.message || "Unable to submit delete request.");
                   return;
                 }
+                await addAssetActivityEntry(Number(asset.id), "Delete request submitted.");
                 await addAuditLog("DELETE_REQUEST", { assetTag: tag }, Number(asset.id));
                 await refreshAssetsFromSupabase();
                 const refreshedIndex = getAssetIndexByTag(tag);
@@ -1298,7 +1683,11 @@
     showAppConfirm(
       asset.pendingDelete ? "Approve and Delete Asset" : "Delete Asset",
       "Delete asset " + tag + "?\nThis action cannot be undone." + requestNote,
-      function () {
+      async function () {
+        const actionLabel = asset.pendingDelete ? "DELETE_APPROVE" : "DELETE";
+        const archived = await archiveAssetBeforeDelete(asset, actionLabel);
+        if (!archived) return;
+        addAuditLog(actionLabel, { assetTag: tag }, null);
         if (supabaseClient && asset.id) {
           supabaseClient
             .from("assets")
@@ -1309,7 +1698,6 @@
                 showAppNotice("Delete Error", result.error.message || "Unable to delete asset.");
                 return;
               }
-              await addAuditLog(asset.pendingDelete ? "DELETE_APPROVE" : "DELETE", { assetTag: tag }, Number(asset.id));
               if (editingTag === tag) resetForm();
               closeAssetDetails();
               await refreshAssetsFromSupabase();
@@ -1759,6 +2147,7 @@
     renderStats(visibleAssets);
     renderPagination(visibleAssets.length);
     if (dashboardModal && !dashboardModal.hidden) renderReportingDashboard();
+    if (deleteRequestsModal && !deleteRequestsModal.hidden) renderDeleteRequestsTable();
     renderDepartmentOptions();
   }
 
@@ -1851,6 +2240,20 @@
 
         if (supabaseClient) {
           const existingAsset = editingIndex >= 0 ? assets[editingIndex] : null;
+          const duplicateCheck = await supabaseClient
+            .from("assets")
+            .select("id, asset_tag")
+            .eq("asset_tag", record.assetTag)
+            .limit(5);
+          if (!duplicateCheck.error) {
+            const duplicateRow = (duplicateCheck.data || []).find(function (row) {
+              return !(existingAsset && Number(row.id) === Number(existingAsset.id));
+            });
+            if (duplicateRow) {
+              showAppNotice("Duplicate Asset Tag", "Asset Tag already exists for another asset.");
+              return;
+            }
+          }
           const payload = mapUiAssetToDb(record);
           let saveResult;
           if (existingAsset && existingAsset.id) {
@@ -1876,6 +2279,15 @@
               .upsert({ name: record.department, is_active: true }, { onConflict: "name" });
           }
           const savedRow = Array.isArray(saveResult.data) ? saveResult.data[0] : saveResult.data;
+          const savedAssetId = savedRow && savedRow.id ? Number(savedRow.id) : (existingAsset && existingAsset.id ? Number(existingAsset.id) : null);
+          if (existingAsset) {
+            const changes = collectAssetChangeSummary(existingAsset, record);
+            if (changes.length && savedAssetId) {
+              await addAssetActivityEntry(savedAssetId, "Asset updated:\n" + changes.map(function (line) { return "- " + line; }).join("\n"));
+            }
+          } else if (savedAssetId) {
+            await addAssetActivityEntry(savedAssetId, "Asset record created.");
+          }
           await addAuditLog(existingAsset ? "UPDATE" : "CREATE", { assetTag: record.assetTag }, savedRow && savedRow.id ? Number(savedRow.id) : null);
           await syncDepartmentsFromSupabase();
           await refreshAssetsFromSupabase();
@@ -1928,6 +2340,54 @@
     });
   }
   if (manageUsersBtn) manageUsersBtn.addEventListener("click", openUserAdminModal);
+  if (openDeleteRequestsBtn) {
+    openDeleteRequestsBtn.addEventListener("click", function () {
+      const menu = openDeleteRequestsBtn.closest("details");
+      if (menu) menu.open = false;
+      openDeleteRequestsModal();
+    });
+  }
+  if (closeDeleteRequestsBtn) closeDeleteRequestsBtn.addEventListener("click", closeDeleteRequestsModal);
+  if (deleteRequestsOverlay) deleteRequestsOverlay.addEventListener("click", closeDeleteRequestsModal);
+  if (deleteRequestsRows) {
+    deleteRequestsRows.addEventListener("click", function (event) {
+      const target = event.target;
+      if (!(target instanceof HTMLElement)) return;
+      const approveId = String(target.getAttribute("data-approve-delete-id") || "").trim();
+      const denyId = String(target.getAttribute("data-deny-delete-id") || "").trim();
+      if (approveId) {
+        approveDeleteRequestByAssetId(Number(approveId));
+        return;
+      }
+      if (denyId) {
+        denyDeleteRequestByAssetId(Number(denyId));
+      }
+    });
+  }
+  if (openTrashBinBtn) {
+    openTrashBinBtn.addEventListener("click", function () {
+      const menu = openTrashBinBtn.closest("details");
+      if (menu) menu.open = false;
+      openTrashBinModal();
+    });
+  }
+  if (closeTrashBinBtn) closeTrashBinBtn.addEventListener("click", closeTrashBinModal);
+  if (trashBinRows) {
+    trashBinRows.addEventListener("click", function (event) {
+      const target = event.target;
+      if (!(target instanceof HTMLElement)) return;
+      const restoreId = String(target.getAttribute("data-restore-trash-id") || "").trim();
+      const purgeId = String(target.getAttribute("data-purge-trash-id") || "").trim();
+      if (restoreId) {
+        restoreDeletedAssetByArchiveId(Number(restoreId));
+        return;
+      }
+      if (purgeId) {
+        purgeDeletedAssetByArchiveId(Number(purgeId));
+      }
+    });
+  }
+  if (trashBinOverlay) trashBinOverlay.addEventListener("click", closeTrashBinModal);
   if (closeUserAdminBtn) closeUserAdminBtn.addEventListener("click", closeUserAdminModal);
   if (userAdminOverlay) userAdminOverlay.addEventListener("click", closeUserAdminModal);
   if (createAgentBtn) {
@@ -2006,6 +2466,8 @@
         currentPage = 1;
         renderTable();
         if (dashboardModal && !dashboardModal.hidden) renderReportingDashboard();
+        if (deleteRequestsModal && !deleteRequestsModal.hidden) renderDeleteRequestsTable();
+        if (trashBinModal && !trashBinModal.hidden) renderTrashBinTable();
         showAppNotice("Data Refreshed", "Asset data was refreshed from Supabase.");
         return;
       }
@@ -2062,6 +2524,8 @@
       closeAssetDetails();
       closeAssetPanel();
       closeDashboardModal();
+      closeDeleteRequestsModal();
+      closeTrashBinModal();
       closeFileOpsDialog();
     }
   });

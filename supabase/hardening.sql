@@ -73,9 +73,40 @@ create index if not exists idx_comments_asset_id on public.asset_comments(asset_
 create index if not exists idx_audit_asset_id on public.asset_audit(asset_id);
 create index if not exists idx_audit_actor_user on public.asset_audit(actor_user_id);
 
+-- Trash bin archive for deleted assets (restorable).
+create table if not exists public.deleted_assets (
+  id bigserial primary key,
+  original_asset_id bigint,
+  asset_tag text not null,
+  asset_name text,
+  serial_number text,
+  device_type text,
+  model text,
+  assigned_user text,
+  location text,
+  room_number text,
+  department text,
+  purchase_date date,
+  lifecycle_year integer,
+  asset_value numeric,
+  status text,
+  notes text,
+  requested_by_user_id uuid,
+  requested_by_username text,
+  requested_at timestamptz,
+  deleted_by_user_id uuid not null,
+  deleted_by_username text,
+  deleted_at timestamptz not null default now(),
+  delete_action text not null default 'DELETE',
+  snapshot jsonb not null default '{}'::jsonb
+);
+create index if not exists idx_deleted_assets_asset_tag on public.deleted_assets(asset_tag);
+create index if not exists idx_deleted_assets_deleted_at on public.deleted_assets(deleted_at desc);
+
 alter table public.assets enable row level security;
 alter table public.asset_comments enable row level security;
 alter table public.asset_audit enable row level security;
+alter table public.deleted_assets enable row level security;
 alter table public.departments enable row level security;
 alter table public.profiles enable row level security;
 
@@ -173,3 +204,22 @@ create policy audit_insert_all_auth on public.asset_audit
 for insert
 to authenticated
 with check (actor_user_id = auth.uid());
+
+-- Deleted assets archive
+drop policy if exists deleted_assets_select_mgr_sup on public.deleted_assets;
+create policy deleted_assets_select_mgr_sup on public.deleted_assets
+for select
+to authenticated
+using (public.current_app_role() in ('MANAGER', 'SUPERVISOR'));
+
+drop policy if exists deleted_assets_insert_mgr_sup on public.deleted_assets;
+create policy deleted_assets_insert_mgr_sup on public.deleted_assets
+for insert
+to authenticated
+with check (public.current_app_role() in ('MANAGER', 'SUPERVISOR'));
+
+drop policy if exists deleted_assets_delete_mgr_sup on public.deleted_assets;
+create policy deleted_assets_delete_mgr_sup on public.deleted_assets
+for delete
+to authenticated
+using (public.current_app_role() in ('MANAGER', 'SUPERVISOR'));
